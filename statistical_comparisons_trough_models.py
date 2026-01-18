@@ -3,13 +3,14 @@ import pandas as pd
 from scipy import stats
 from statsmodels.stats.contingency_tables import mcnemar
 import sys
+import matplotlib.pyplot as plt
 
 # Statistical comparisons for trough-based pharmacokinetic models
 # 1-compartment Bayesian with trough vs 2-compartment Bayesian with trough
 # 1-compartment Fixed VD with trough vs 2-compartment Bayesian with trough
 
 def load_detailed_results(suffix):
-    filename = f'monte_carlo_all_data_onevrstwocompartment_geometric_mean{suffix}.csv'
+    filename = f'output/monte_carlo_all_data_onevrstwocompartment_geometric_mean{suffix}.csv'
     try:
         df = pd.read_csv(filename)
         return df
@@ -18,7 +19,7 @@ def load_detailed_results(suffix):
         return None
 
 def load_detailed_results_two_vrs_two(suffix):
-    filename = f'monte_carlo_results_two_vrs_two{suffix}.csv'
+    filename = f'output/monte_carlo_results_two_vrs_two{suffix}.csv'
     try:
         df = pd.read_csv(filename)
         return df
@@ -48,6 +49,21 @@ def format_p_value(p):
         return "p < 0.05"
     else:
         return f"p = {p:.3f}"
+
+def bland_altman_plot(true_vals, pred_vals, title, filename):
+    mean_vals = (true_vals + pred_vals) / 2
+    diff_vals = pred_vals - true_vals
+    plt.figure(figsize=(8, 6))
+    plt.scatter(mean_vals, diff_vals, alpha=0.5)
+    plt.axhline(np.mean(diff_vals), color='red', linestyle='--', label='Mean difference')
+    plt.axhline(np.mean(diff_vals) + 1.96 * np.std(diff_vals), color='blue', linestyle='--', label='+1.96 SD')
+    plt.axhline(np.mean(diff_vals) - 1.96 * np.std(diff_vals), color='blue', linestyle='--', label='-1.96 SD')
+    plt.xlabel('Mean of True and Predicted AUC')
+    plt.ylabel('Difference (Predicted - True) AUC')
+    plt.title(title)
+    plt.legend()
+    plt.savefig(filename)
+    plt.close()
 
 def create_auc_comparison_csv(auc_true, auc_models, model_names, suffix):
     bins = [0, 400, 600, np.inf]
@@ -141,6 +157,11 @@ def main():
         auc_models = [auc_fixed, auc_bayes, auc_fit_two]
         model_names = ["Fixed Vd", "One Compartment Bayesian", "Two Compartment Bayesian"]
         create_auc_comparison_csv(auc_true, auc_models, model_names, suffix)
+        
+        # Generate Bland-Altman plots
+        bland_altman_plot(auc_true, auc_bayes, 'Bland-Altman: One Compartment Bayesian AUC vs True AUC', f'output/bland_altman_one_compt_bayes{suffix}.png')
+        bland_altman_plot(auc_true, auc_fit_two, 'Bland-Altman: Two Compartment Bayesian AUC vs True AUC', f'output/bland_altman_two_compt_bayes{suffix}.png')
+        bland_altman_plot(auc_true, auc_fixed, 'Bland-Altman: One Compartment Fixed VD AUC vs True AUC', f'output/bland_altman_one_compt_fixed{suffix}.png')
         
         cl_true = df['Cl_total_true_one'].values
         cl_calc = df['Clcalc'].values

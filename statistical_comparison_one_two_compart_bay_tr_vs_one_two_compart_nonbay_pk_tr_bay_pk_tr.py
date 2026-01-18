@@ -9,7 +9,7 @@ import sys
 
 # Function to load detailed Monte Carlo results
 def load_detailed_results(suffix):
-    filename = f'monte_carlo_all_data_onevrstwocompartment_geometric_mean{suffix}.csv'
+    filename = f'output/monte_carlo_all_data_onevrstwocompartment_geometric_mean{suffix}.csv'
     try:
         df = pd.read_csv(filename)
         return df
@@ -19,7 +19,7 @@ def load_detailed_results(suffix):
 
 # Function to load detailed Monte Carlo results for two-vs-two
 def load_detailed_results_two_vrs_two(suffix):
-    filename = f'monte_carlo_results_two_vrs_two{suffix}.csv'
+    filename = f'output/monte_carlo_results_two_vrs_two{suffix}.csv'
     try:
         df = pd.read_csv(filename)
         return df

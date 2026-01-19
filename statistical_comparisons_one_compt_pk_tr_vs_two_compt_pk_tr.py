@@ -77,7 +77,7 @@ def bland_altman_plot(true_vals, pred_vals, title, filename):
     diff_vals = pred_vals - true_vals
     plt.figure(figsize=(8, 6))
     plt.scatter(mean_vals, diff_vals, alpha=0.5)
-    plt.axhline(np.mean(diff_vals), color='red', linestyle='--', label='Mean difference')
+    plt.axhline(np.mean(diff_vals), color='red', linestyle='-.', label='Mean difference')
     plt.axhline(np.mean(diff_vals) + 1.96 * np.std(diff_vals), color='blue', linestyle='--', label='+1.96 SD')
     plt.axhline(np.mean(diff_vals) - 1.96 * np.std(diff_vals), color='blue', linestyle='--', label='-1.96 SD')
     plt.xlabel('Mean of True and Predicted AUC')
@@ -230,9 +230,9 @@ def main():
         create_auc_comparison_csv(auc_true, auc_models, model_names, suffix)
         
         # Generate Bland-Altman plots
-        bland_altman_plot(auc_true, auc_calc, 'Bland-Altman: One Compartment Non-Bayesian Peak Trough AUC vs True AUC', f'output/bland_altman_one_compt_non_bayes_pk_tr{suffix}.png')
-        bland_altman_plot(auc_true, auc_bayes, 'Bland-Altman: One Compartment Bayesian Peak Trough AUC vs True AUC', f'output/bland_altman_one_compt_bayes_pk_tr{suffix}.png')
-        bland_altman_plot(auc_true_two, auc_fit_two, 'Bland-Altman: Two Compartment Bayesian Peak Trough AUC vs True AUC', f'output/bland_altman_two_compt_bayes_pk_tr{suffix}.png')
+        bland_altman_plot(auc_true, auc_calc, 'Bland-Altman: One-Compartment Non-Bayesian Peak-Trough Model AUC vs True AUC', f'output/bland_altman_one_compt_non_bayes_pk_tr{suffix}.png')
+        bland_altman_plot(auc_true, auc_bayes, 'Bland-Altman: One-Compartment Bayesian Peak-Trough Model AUC vs True AUC', f'output/bland_altman_one_compt_bayes_pk_tr{suffix}.png')
+        bland_altman_plot(auc_true_two, auc_fit_two, 'Bland-Altman: Two-Compartment Bayesian Peak-Trough Model AUC vs True AUC', f'output/bland_altman_two_compt_bayes_pk_tr{suffix}.png')
         
         auc_diff_two = auc_fit_two - auc_true_two
         cl_true_two = df['Cl_total_true_two'].values

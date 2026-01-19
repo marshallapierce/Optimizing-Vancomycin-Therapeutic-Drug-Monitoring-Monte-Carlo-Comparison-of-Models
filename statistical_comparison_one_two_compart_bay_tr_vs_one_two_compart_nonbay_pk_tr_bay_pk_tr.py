@@ -3,6 +3,7 @@ import pandas as pd
 from scipy import stats
 from statsmodels.stats.contingency_tables import mcnemar
 import sys
+import matplotlib.pyplot as plt
 
 # Statistical comparisons for Bayesian trough vs Bayesian peak trough, Bayesian trough vs peak trough, etc.
 # Adapted from statistical_comparisons_one_compt_pk_tr_vs_two_compt_pk_tr.py
@@ -64,6 +65,35 @@ def format_p_value(p):
         return "p < 0.05"
     else:
         return f"p = {p:.3f}"
+
+def bland_altman_plot(true_vals, pred_vals, title, filename):
+    mean_vals = (true_vals + pred_vals) / 2
+    diff_vals = pred_vals - true_vals
+    plt.figure(figsize=(8, 6))
+    plt.scatter(mean_vals, diff_vals, alpha=0.5)
+    plt.axhline(np.mean(diff_vals), color='red', linestyle='--', label='Mean difference')
+    plt.axhline(np.mean(diff_vals) + 1.96 * np.std(diff_vals), color='blue', linestyle='--', label='+1.96 SD')
+    plt.axhline(np.mean(diff_vals) - 1.96 * np.std(diff_vals), color='blue', linestyle='--', label='-1.96 SD')
+    plt.xlabel('Mean of True and Predicted AUC')
+    plt.ylabel('Difference (Predicted - True) AUC')
+    plt.title(title)
+    plt.legend()
+    plt.savefig(filename)
+    plt.close()
+
+def get_full_method_name(method, compartment):
+    if method == 'bay_tr' and compartment == 'one':
+        return 'One Compartment Bayesian Trough'
+    elif method == 'bay_tr' and compartment == 'two':
+        return 'Two Compartment Bayesian Trough'
+    elif method == 'pk_tr' and compartment == 'one':
+        return 'One Compartment Peak Trough'
+    elif method == 'bay_pk_tr' and compartment == 'one':
+        return 'One Compartment Bayesian Peak Trough'
+    elif method == 'bay_pk_tr' and compartment == 'two':
+        return 'Two Compartment Bayesian Peak Trough'
+    else:
+        return f'{method} {compartment}'
 
 def mcnemar_test(auc_true, auc1, auc2):
     bins = [0, 400, 601, np.inf]
@@ -131,7 +161,7 @@ def create_auc_comparison_csv(auc_true, auc_models, model_names, suffix):
             lines.append(f"% Predicted AUC <400 when True AUC 400-600,,,,,0.00%")
         lines.append("")
     # Write to file
-    filename = f'auc_comparison_grids_{suffix.replace(" ", "_")}.csv'
+    filename = f'output/auc_comparison_grids_{suffix.replace(" ", "_")}.csv'
     with open(filename, 'w') as f:
         for line in lines:
             f.write(line + '\n')
@@ -252,6 +282,12 @@ def main():
         auc_models = [auc1, auc2]
         model_names = comp['name'].split(' vs ')
         create_auc_comparison_csv(auc_true, auc_models, model_names, comp['name'])
+        
+        # Generate Bland-Altman plots
+        title1 = f'Bland-Altman: {get_full_method_name(comp["comp1"]["method"], comp["comp1"]["compartment"])} AUC vs True AUC'
+        title2 = f'Bland-Altman: {get_full_method_name(comp["comp2"]["method"], comp["comp2"]["compartment"])} AUC vs True AUC'
+        bland_altman_plot(auc_true, auc1, title1, f'output/bland_altman_{comp["comp1"]["method"]}_{comp["comp1"]["compartment"]}.png')
+        bland_altman_plot(auc_true, auc2, title2, f'output/bland_altman_{comp["comp2"]["method"]}_{comp["comp2"]["compartment"]}.png')
 
 if __name__ == '__main__':
     main()

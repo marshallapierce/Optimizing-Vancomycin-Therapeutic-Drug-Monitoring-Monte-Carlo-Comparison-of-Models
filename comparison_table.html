@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmacokinetic Model Comparisons</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pharmacokinetic Model Comparisons</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Comparison</th>
+                <th>Metric</th>
+                <th>Method 1</th>
+                <th>Method 2</th>
+                <th>Statistical Test</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- One-Compartment Analytic Peak-Trough vs Bayesian Two-Compartment Peak-Trough -->
+            <tr>
+                <td rowspan="9">One-Compartment Analytic Peak-Trough vs Bayesian Two-Compartment Peak-Trough</td>
+                <td>AUC Diff (mean)</td>
+                <td>PK-TR: -3.46</td>
+                <td>Bayesian: -6.86</td>
+                <td>Paired t-test: t = 32.902, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <tr>
+                <td>AUC RMSE</td>
+                <td>PK-TR: 44.72</td>
+                <td>Bayesian: 40.78</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>AUC 95% CI</td>
+                <td>PK-TR: (-90.86, 83.93)</td>
+                <td>Bayesian: (-85.65, 71.94)</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>AUC Pearson's r</td>
+                <td>PK-TR: 0.976</td>
+                <td>Bayesian: 0.979</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Cl Diff (mean)</td>
+                <td>PK-TR: -0.07</td>
+                <td>Bayesian: -0.04</td>
+                <td>Paired t-test: t = -29.266, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <tr>
+                <td>Cl 95% CI</td>
+                <td>PK-TR: (-0.83, 0.69)</td>
+                <td>Bayesian: (-0.68, 0.60)</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Cl RMSE</td>
+                <td>PK-TR: 0.40</td>
+                <td>Bayesian: 0.33</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>CDA vr True AUC</td>
+                <td>86.8%</td>
+                <td>88.3%</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>CDA Correct Classifications</td>
+                <td>Analytical: 25865</td>
+                <td>Bayesian: 26279</td>
+                <td>McNemar's Test: χ² = 127.863, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <!-- One-Compartment Bayesian Peak-Trough vs Two-Compartment Bayesian Peak-Trough -->
+            <tr>
+                <td rowspan="9">One-Compartment Bayesian Peak-Trough vs Two-Compartment Bayesian Peak-Trough</td>
+                <td>AUC Diff (mean)</td>
+                <td>One-Compartment: -6.86</td>
+                <td>Two-Compartment: -5.39</td>
+                <td>Paired t-test: t = -4.746, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <tr>
+                <td>AUC RMSE</td>
+                <td>One-Compartment: 40.78</td>
+                <td>Two-Compartment: 40.75</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>AUC 95% CI</td>
+                <td>One-Compartment: (-85.65, 71.94)</td>
+                <td>Two-Compartment: (-84.57, 73.78)</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>AUC Pearson's r</td>
+                <td>One-Compartment: 0.979</td>
+                <td>Two-Compartment: 0.979</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Cl Diff (mean)</td>
+                <td>One-Compartment: -0.04</td>
+                <td>Two-Compartment: -0.02</td>
+                <td>Paired t-test: t = -7.727, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <tr>
+                <td>Cl 95% CI</td>
+                <td>One-Compartment: (-0.68, 0.60)</td>
+                <td>Two-Compartment: (-0.66, 0.61)</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Cl RMSE</td>
+                <td>One-Compartment: 0.33</td>
+                <td>Two-Compartment: 0.33</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>CDA vr True AUC</td>
+                <td>88.2%</td>
+                <td>88.3%</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>CDA Correct Classifications</td>
+                <td>1-Compartment Bayesian: 26279</td>
+                <td>2-Compartment Bayesian: 26305</td>
+                <td>McNemar's Test: χ² = 0.134, p = 0.714 (Bonferroni corrected: p = 1.000)</td>
+            </tr>
+            <!-- One-Compartment Bayesian Trough vs Two-Compartment Bayesian Trough -->
+            <tr>
+                <td rowspan="9">One-Compartment Bayesian Trough vs Two-Compartment Bayesian Trough</td>
+                <td>AUC Diff (mean)</td>
+                <td>1-Compt Bayes: -10.22</td>
+                <td>2-Compt Bayes: -5.24</td>
+                <td>Paired t-test: t = -14.379, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <tr>
+                <td>AUC RMSE</td>
+                <td>1-Compt Bayes: 56.34</td>
+                <td>2-Compt Bayes: 55.33</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>AUC 95% CI</td>
+                <td>1-Compt Bayes: (-118.81, 98.38)</td>
+                <td>2-Compt Bayes: (-113.20, 102.73)</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>AUC Pearson's r</td>
+                <td>1-Compt Bayes: 0.961</td>
+                <td>2-Compt Bayes: 0.960</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Cl Diff (mean)</td>
+                <td>1-Compt Bayes: 0.01</td>
+                <td>2-Compt Bayes: 0.01</td>
+                <td>Paired t-test: t = 3.795, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <tr>
+                <td>Cl 95% CI</td>
+                <td>1-Compt Bayes: (-0.88, 0.91)</td>
+                <td>2-Compt Bayes: (-0.86, 0.87)</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Cl RMSE</td>
+                <td>1-Compt Bayes: 0.46</td>
+                <td>2-Compt Bayes: 0.44</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>CDA vr True AUC</td>
+                <td>83.5%</td>
+                <td>83.5%</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>CDA Correct Classifications</td>
+                <td>Fixed VD: 24666</td>
+                <td>2-Compt Bayes: 24897</td>
+                <td>McNemar's Test: χ² = 0.000, p = 0.988</td>
+            </tr>
+            <!-- One-Compartment Fixed VD Trough vs Two-Compartment Bayesian Trough -->
+            <tr>
+                <td rowspan="9">One-Compartment Fixed VD Trough vs Two-Compartment Bayesian Trough</td>
+                <td>AUC Diff (mean)</td>
+                <td>Fixed VD: -15.03</td>
+                <td>2-Compt Bayes: -5.24</td>
+                <td>Paired t-test: t = -26.825, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <tr>
+                <td>AUC RMSE</td>
+                <td>Fixed VD: 58.01</td>
+                <td>2-Compt Bayes: 55.33</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>AUC 95% CI</td>
+                <td>Fixed VD: (-124.85, 94.79)</td>
+                <td>2-Compt Bayes: (-113.20, 102.73)</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>AUC Pearson's r</td>
+                <td>Fixed VD: 0.961</td>
+                <td>2-Compt Bayes: 0.960</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Cl Diff (mean)</td>
+                <td>Fixed VD: 0.18</td>
+                <td>2-Compt Bayes: 0.01</td>
+                <td>Paired t-test: t = 57.750, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <tr>
+                <td>Cl 95% CI</td>
+                <td>Fixed VD: (-0.86, 1.22)</td>
+                <td>2-Compt Bayes: (-0.86, 0.87)</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Cl RMSE</td>
+                <td>Fixed VD: 0.56</td>
+                <td>2-Compt Bayes: 0.44</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>CDA vr True AUC</td>
+                <td>82.7%</td>
+                <td>83.5%</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>CDA Correct Classifications</td>
+                <td>Fixed VD: 24666</td>
+                <td>2-Compt Bayes: 24897</td>
+                <td>McNemar's Test: statistic = 10.036, p < 0.01</td>
+            </tr>
+            <!-- 2 compartment Bayesian trough vs 1 compartment Bayesian peak trough -->
+            <tr>
+                <td rowspan="9">2 compartment Bayesian trough vs 1 compartment Bayesian peak trough</td>
+                <td>AUC Diff (mean)</td>
+                <td>bay_tr: -5.24</td>
+                <td>bay_pk_tr: -7.21</td>
+                <td>Paired t-test: t = 5.485, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <tr>
+                <td>AUC RMSE</td>
+                <td>bay_tr: 55.67</td>
+                <td>bay_pk_tr: 41.29</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>AUC 95% CI</td>
+                <td>bay_tr: (-113.86, 103.38)</td>
+                <td>bay_pk_tr: (-86.89, 72.48)</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>AUC Pearson's r</td>
+                <td>bay_tr: 0.961</td>
+                <td>bay_pk_tr: 0.979</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Cl Diff (mean)</td>
+                <td>bay_tr: -0.01</td>
+                <td>bay_pk_tr: -0.04</td>
+                <td>Paired t-test: t = 14.203, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <tr>
+                <td>Cl 95% CI</td>
+                <td>bay_tr: (-0.87, 0.86)</td>
+                <td>bay_pk_tr: (-0.68, 0.60)</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Cl RMSE</td>
+                <td>bay_tr: 0.44</td>
+                <td>bay_pk_tr: 0.33</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>CDA vr True AUC</td>
+                <td>-</td>
+                <td>-</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>CDA Correct Classifications</td>
+                <td>bay_tr: 25099</td>
+                <td>bay_pk_tr: 26475</td>
+                <td>McNemar's Test: χ² = 352.597, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <!-- 2 compartment Bayesian trough vs 2 compartment Bayesian peak trough -->
+            <tr>
+                <td rowspan="9">2 compartment Bayesian trough vs 2 compartment Bayesian peak trough</td>
+                <td>AUC Diff (mean)</td>
+                <td>bay_tr: -5.24</td>
+                <td>bay_pk_tr: -5.46</td>
+                <td>Paired t-test: t = 0.965, p = 0.334 (Bonferroni corrected: p = 1.000)</td>
+            </tr>
+            <tr>
+                <td>AUC RMSE</td>
+                <td>bay_tr: 55.67</td>
+                <td>bay_pk_tr: 41.06</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>AUC 95% CI</td>
+                <td>bay_tr: (-113.86, 103.38)</td>
+                <td>bay_pk_tr: (-85.23, 74.30)</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>AUC Pearson's r</td>
+                <td>bay_tr: 0.961</td>
+                <td>bay_pk_tr: 0.979</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Cl Diff (mean)</td>
+                <td>bay_tr: -0.01</td>
+                <td>bay_pk_tr: -0.02</td>
+                <td>Paired t-test: t = 9.753, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <tr>
+                <td>Cl 95% CI</td>
+                <td>bay_tr: (-0.87, 0.86)</td>
+                <td>bay_pk_tr: (-0.66, 0.61)</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Cl RMSE</td>
+                <td>bay_tr: 0.44</td>
+                <td>bay_pk_tr: 0.32</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>CDA vr True AUC</td>
+                <td>-</td>
+                <td>-</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>CDA Correct Classifications</td>
+                <td>bay_tr: 25099</td>
+                <td>bay_pk_tr: 26508</td>
+                <td>McNemar's Test: χ² = 543.886, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <!-- 1 compartment Bayesian trough vs 1 compartment Bayesian peak trough -->
+            <tr>
+                <td rowspan="9">1 compartment Bayesian trough vs 1 compartment Bayesian peak trough</td>
+                <td>AUC Diff (mean)</td>
+                <td>bay_tr: -9.56</td>
+                <td>bay_pk_tr: -7.21</td>
+                <td>Paired t-test: t = -9.450, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <tr>
+                <td>AUC RMSE</td>
+                <td>bay_tr: 56.83</td>
+                <td>bay_pk_tr: 41.29</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>AUC 95% CI</td>
+                <td>bay_tr: (-119.36, 100.24)</td>
+                <td>bay_pk_tr: (-86.89, 72.48)</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>AUC Pearson's r</td>
+                <td>bay_tr: 0.960</td>
+                <td>bay_pk_tr: 0.979</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Cl Diff (mean)</td>
+                <td>bay_tr: -0.01</td>
+                <td>bay_pk_tr: -0.04</td>
+                <td>Paired t-test: t = 14.000, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <tr>
+                <td>Cl 95% CI</td>
+                <td>bay_tr: (-0.91, 0.88)</td>
+                <td>bay_pk_tr: (-0.68, 0.60)</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Cl RMSE</td>
+                <td>bay_tr: 0.46</td>
+                <td>bay_pk_tr: 0.33</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>CDA vr True AUC</td>
+                <td>-</td>
+                <td>-</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>CDA Correct Classifications</td>
+                <td>bay_tr: 25090</td>
+                <td>bay_pk_tr: 26475</td>
+                <td>McNemar's Test: χ² = 486.280, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <!-- 1 compartment Bayesian trough vs 1 compartment peak trough -->
+            <tr>
+                <td rowspan="9">1 compartment Bayesian trough vs 1 compartment peak trough</td>
+                <td>AUC Diff (mean)</td>
+                <td>bay_tr: -9.56</td>
+                <td>pk_tr: -3.91</td>
+                <td>Paired t-test: t = -16.441, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <tr>
+                <td>AUC RMSE</td>
+                <td>bay_tr: 56.83</td>
+                <td>pk_tr: 45.24</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>AUC 95% CI</td>
+                <td>bay_tr: (-119.36, 100.24)</td>
+                <td>pk_tr: (-92.25, 84.43)</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>AUC Pearson's r</td>
+                <td>bay_tr: 0.960</td>
+                <td>pk_tr: 0.976</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Cl Diff (mean)</td>
+                <td>bay_tr: -0.01</td>
+                <td>pk_tr: -0.07</td>
+                <td>Paired t-test: t = 18.668, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+            <tr>
+                <td>Cl 95% CI</td>
+                <td>bay_tr: (-0.91, 0.88)</td>
+                <td>pk_tr: (-0.83, 0.69)</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Cl RMSE</td>
+                <td>bay_tr: 0.46</td>
+                <td>pk_tr: 0.40</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>CDA vr True AUC</td>
+                <td>-</td>
+                <td>-</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>CDA Correct Classifications</td>
+                <td>bay_tr: 25090</td>
+                <td>pk_tr: 26057</td>
+                <td>McNemar's Test: χ² = 177.170, p < 0.001 (Bonferroni corrected: p < 0.001)</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

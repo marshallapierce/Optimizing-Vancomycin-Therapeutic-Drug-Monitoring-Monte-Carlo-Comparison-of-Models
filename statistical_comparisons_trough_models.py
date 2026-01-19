@@ -55,11 +55,11 @@ def bland_altman_plot(true_vals, pred_vals, title, filename):
     diff_vals = pred_vals - true_vals
     plt.figure(figsize=(8, 6))
     plt.scatter(mean_vals, diff_vals, alpha=0.5)
-    plt.axhline(np.mean(diff_vals), color='red', linestyle='--', label='Mean difference')
+    plt.axhline(np.mean(diff_vals), color='red', linestyle='-.', label='Mean difference')
     plt.axhline(np.mean(diff_vals) + 1.96 * np.std(diff_vals), color='blue', linestyle='--', label='+1.96 SD')
     plt.axhline(np.mean(diff_vals) - 1.96 * np.std(diff_vals), color='blue', linestyle='--', label='-1.96 SD')
-    plt.xlabel('Mean of True and Predicted AUC')
-    plt.ylabel('Difference (Predicted - True) AUC')
+    plt.xlabel('Mean of True and Predicted AUC') # 'Mean of True and Predicted AUC'
+    plt.ylabel('Difference (Predicted - True) AUC')# 'Difference (Predicted - True) AUC'
     plt.title(title)
     plt.legend()
     plt.savefig(filename)
@@ -159,9 +159,9 @@ def main():
         create_auc_comparison_csv(auc_true, auc_models, model_names, suffix)
         
         # Generate Bland-Altman plots
-        bland_altman_plot(auc_true, auc_bayes, 'Bland-Altman: One Compartment Bayesian AUC vs True AUC', f'output/bland_altman_one_compt_bayes{suffix}.png')
-        bland_altman_plot(auc_true, auc_fit_two, 'Bland-Altman: Two Compartment Bayesian AUC vs True AUC', f'output/bland_altman_two_compt_bayes{suffix}.png')
-        bland_altman_plot(auc_true, auc_fixed, 'Bland-Altman: One Compartment Fixed VD AUC vs True AUC', f'output/bland_altman_one_compt_fixed{suffix}.png')
+        bland_altman_plot(auc_true, auc_bayes, 'Bland-Altman: One-Compartment Bayesian Trough Model AUC vs True AUC', f'output/bland_altman_one_compt_bayes{suffix}.png')
+        bland_altman_plot(auc_true, auc_fit_two, 'Bland-Altman: Two-Compartment Bayesian Trough Model AUC vs True AUC', f'output/bland_altman_two_compt_bayes{suffix}.png')
+        bland_altman_plot(auc_true, auc_fixed, 'Bland-Altman: One-Compartment Fixed VD Trough Model AUC vs True AUC', f'output/bland_altman_one_compt_fixed{suffix}.png')
         
         cl_true = df['Cl_total_true_one'].values
         cl_calc = df['Clcalc'].values

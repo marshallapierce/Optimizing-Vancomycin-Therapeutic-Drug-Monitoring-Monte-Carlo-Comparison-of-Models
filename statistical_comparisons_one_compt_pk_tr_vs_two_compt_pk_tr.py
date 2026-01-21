@@ -5,7 +5,10 @@ from statsmodels.stats.contingency_tables import mcnemar
 import sys
 import matplotlib.pyplot as plt
 
-# Statistical comparisons for 1 compartment non-bayesian Peak-trough vrs 2 compartment Bayesian Peak-Trough, 1 compartarment Bayesian peak-trough vrs 2 compartment Bayesian peak-trough
+# Create output directory
+output_dir = 'output'
+
+# Statistical comparisons for 1 compartment non-bayesian Peak-trough vrs 1 compartment Bayesian Peak-Trough, 1 compartment Bayesian peak-trough vrs 2 compartment Bayesian peak-trough
 # Adapted from statistical_comparisons.py
 
 # Function to load detailed Monte Carlo results and extract metrics
@@ -153,7 +156,7 @@ def create_auc_comparison_csv(auc_true, auc_models, model_names, suffix):
             lines.append(f"% Predicted AUC <400 when True AUC 400-600,,,,,0.00%")
         lines.append("")
     # Write to file
-    filename = f'auc_comparison_grids_peak_trough{suffix}.csv'
+    filename = f'{output_dir}/auc_comparison_grids_peak_trough{suffix}.csv'
     with open(filename, 'w') as f:
         for line in lines:
             f.write(line + '\n')
@@ -252,11 +255,11 @@ def main():
             'pearson_r': pearson_r_two
         }
         
-        print(f"=== Statistical Comparisons for PK-TR (1 compt) vs Bayesian PK-TR (2 compt), and 1-Compartment (1 compt) Bayesian PK-TR vs 2-Compartment (2 compt) Bayesian PK-TR Peak-Trough (Suffix: {suffix}) ===")
+        print(f"=== Statistical Comparisons for PK-TR (1 compt) vs Bayesian PK-TR (1 compt), and 1-Compartment (1 compt) Bayesian PK-TR vs 2-Compartment (2 compt) Bayesian PK-TR Peak-Trough (Suffix: {suffix}) ===")
         print(f"Merged and filtered data: {len(df)} simulations")
 
         # Section 1: PK-TR vs Bayesian
-        print("\n=== PK-TR (1 compt) vs Bayesian PK-TR (2 compt) ===")
+        print("\n=== PK-TR (1 compt) vs Bayesian PK-TR (1 compt) ===")
         t_auc, p_auc = stats.ttest_rel(auc_diff_calc, auc_diff_bayes)
         p_auc_corrected = min(p_auc * 8, 1.0)
         print(f"AUC Diff: PK-TR mean = {np.mean(auc_diff_calc):.2f}, Bayesian mean = {np.mean(auc_diff_bayes):.2f}")

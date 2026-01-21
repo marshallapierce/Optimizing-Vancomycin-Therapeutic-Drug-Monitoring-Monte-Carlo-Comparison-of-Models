@@ -176,17 +176,17 @@ def main():
         {
             'name': '1 compartment Bayesian trough vs 1 compartment Bayesian peak trough',
             'comp1': {'compartment': 'one', 'suffix': 'CltotalfourpointfiveTR', 'method': 'bay_tr'},
-            'comp2': {'compartment': 'one', 'suffix': 'Cltotalfourpointfivepktr', 'method': 'bay_pk_tr'}
+            'comp2': {'compartment': 'one', 'suffix': 'CltotalfourpointfivePKTR', 'method': 'bay_pk_tr'}
         },
         {
             'name': '1 compartment Bayesian trough vs 1 compartment peak trough',
             'comp1': {'compartment': 'one', 'suffix': 'CltotalfourpointfiveTR', 'method': 'bay_tr'},
-            'comp2': {'compartment': 'one', 'suffix': 'Cltotalfourpointfivepktr', 'method': 'pk_tr'}
+            'comp2': {'compartment': 'one', 'suffix': 'CltotalfourpointfivePKTR', 'method': 'pk_tr'}
         },
         {
             'name': '2 compartment Bayesian trough vs 1 compartment Bayesian peak trough',
             'comp1': {'compartment': 'two', 'suffix': 'CltotalfourpointfiveTR', 'method': 'bay_tr'},
-            'comp2': {'compartment': 'one', 'suffix': 'Cltotalfourpointfivepktr', 'method': 'bay_pk_tr'}
+            'comp2': {'compartment': 'one', 'suffix': 'CltotalfourpointfivePKTR', 'method': 'bay_pk_tr'}
         },
         {
             'name': '2 compartment Bayesian trough vs 2 compartment Bayesian peak trough',
@@ -212,14 +212,27 @@ def main():
         # Merge on 'Group' assuming it exists
         merged_df = pd.merge(df1, df2, on='Group', suffixes=('_1', '_2'))
 
-        # Assume AUC_true is the same, take from _1
-        auc_true = merged_df['AUC_true_1'].values
-        auc1 = merged_df[f'AUC_{comp["comp1"]["method"]}'].values
-        auc2 = merged_df[f'AUC_{comp["comp2"]["method"]}'].values
+        # Apply filters
+        if 'Vdcalc' in merged_df.columns:
+            valid_one = merged_df['Vdcalc'] > 0
+        else:
+            valid_one = pd.Series([True] * len(merged_df))
+        if 'Vc_fit' in merged_df.columns and 'Vp_fit' in merged_df.columns:
+            valid_two = (merged_df['Vc_fit'] + merged_df['Vp_fit']) > 0
+        else:
+            valid_two = pd.Series([True] * len(merged_df))
+        valid = valid_one & valid_two
+        df = merged_df[valid]
+        print(f"Merged and filtered data: {len(df)} simulations")
 
-        cl_true = merged_df['Cl_total_true_1'].values
-        cl1 = merged_df[f'Cl_{comp["comp1"]["method"]}'].values
-        cl2 = merged_df[f'Cl_{comp["comp2"]["method"]}'].values
+        # Assume AUC_true is the same, take from _1
+        auc_true = df['AUC_true_1'].values
+        auc1 = df[f'AUC_{comp["comp1"]["method"]}'].values
+        auc2 = df[f'AUC_{comp["comp2"]["method"]}'].values
+
+        cl_true = df['Cl_total_true_1'].values
+        cl1 = df[f'Cl_{comp["comp1"]["method"]}'].values
+        cl2 = df[f'Cl_{comp["comp2"]["method"]}'].values
 
         # Differences
         auc_diff1 = auc1 - auc_true

@@ -10,6 +10,9 @@ np.random.seed(42)  # For repeatable random values
 output_dir = 'output'
 os.makedirs(output_dir, exist_ok=True)
 
+# Get the Python file name for output files
+py_file_name = os.path.splitext(os.path.basename(__file__))[0]
+
 # Population parameters for two-compartment limits are used in parameter randomization
 # adjusted Cl_total to reflect population mean from real data
 # adjust all doses (9 occurrences) for Avg AUC target 450
@@ -349,6 +352,9 @@ rmse_ratios = []
 auc_sds = []
 auc_uppers = []
 auc_lowers = []
+cl_biases = []
+cl_rmses = []
+pearson_rs = []
 
 for model_name, auc_fit, cl_fit in zip(model_names, auc_fits, cl_fits):
     auc_differences = AUC_true - auc_fit
@@ -365,6 +371,13 @@ for model_name, auc_fit, cl_fit in zip(model_names, auc_fits, cl_fits):
     auc_sds.append(auc_sd)
     auc_uppers.append(auc_upper)
     auc_lowers.append(auc_lower)
+    cl_differences = params['Cl_total'] - cl_fit
+    cl_bias = np.mean(cl_differences)
+    cl_rmse = np.sqrt(np.mean(cl_differences**2))
+    pearson_r, _ = stats.pearsonr(AUC_true, auc_fit)
+    cl_biases.append(cl_bias)
+    cl_rmses.append(cl_rmse)
+    pearson_rs.append(pearson_r)
     with open(f'{output_dir}/bland_altman_data_{model_name.lower().replace(" ", "_")}{file_suffix}.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(['AUC_mean', 'AUC_difference'])
@@ -383,6 +396,9 @@ with open(f'{output_dir}/cl_differences_statistics_Geometric_Mean{file_suffix}.c
         writer.writerow([f'AUC SD {model}', auc_sds[i]])
         writer.writerow([f'AUC Upper 95% Limit Bland-Altman {model}', auc_uppers[i]])
         writer.writerow([f'AUC Lower 95% Limit Bland-Altman {model}', auc_lowers[i]])
+        writer.writerow([f'Average Cl Bias {model}', cl_biases[i]])
+        writer.writerow([f'Cl RMSE {model}', cl_rmses[i]])
+        writer.writerow([f'Pearson r AUC predicted vs True {model}', pearson_rs[i]])
     for key in pop_params:
         writer.writerow([f'{key} Percent Clipped', clipping_stats[key]])
     writer.writerow([])
@@ -415,5 +431,6 @@ for model_name in model_names:
     plt.title(f'Bland-Altman Plot for {model_name}')
     plt.legend()
     plt.grid(True)
-    plt.savefig(f'{output_dir}/bland_altman_plot_{model_name.lower().replace(" ", "_")}{file_suffix}.png', dpi=300)
+    title_for_filename = f'Bland-Altman Plot for {model_name}'.replace(' ', '_').replace(':', '_')
+    plt.savefig(f'{output_dir}/{title_for_filename}_{py_file_name}{file_suffix}.png', dpi=300)
     plt.show()

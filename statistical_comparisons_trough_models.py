@@ -5,6 +5,9 @@ from statsmodels.stats.contingency_tables import mcnemar
 import sys
 import matplotlib.pyplot as plt
 
+# Create output directory
+output_dir = 'output'
+
 # Statistical comparisons for trough-based pharmacokinetic models
 # 1-compartment Bayesian with trough vs 2-compartment Bayesian with trough
 # 1-compartment Fixed VD with trough vs 2-compartment Bayesian with trough
@@ -118,7 +121,7 @@ def create_auc_comparison_csv(auc_true, auc_models, model_names, suffix):
             lines.append(f"% Predicted AUC <400 when True AUC 400-600,,,,,0.00%")
         lines.append("")
     # Write to file
-    filename = f'auc_comparison_grids_troughs{suffix}.csv'
+    filename = f'{output_dir}/auc_comparison_grids_troughs{suffix}.csv'
     with open(filename, 'w') as f:
         for line in lines:
             f.write(line + '\n')

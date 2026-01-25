@@ -278,6 +278,16 @@ def main():
         rmse_cl_bayes = np.sqrt(np.mean(cl_diff_bayes**2))
         print(f"Cl RMSE: PK-TR = {rmse_cl_calc:.2f}, Bayesian = {rmse_cl_bayes:.2f}")
 
+        # Percentage error for AUC
+        perc_error_auc_calc = ((auc_calc / auc_true - 1) * 100)
+        perc_error_auc_bayes = ((auc_bayes / auc_true - 1) * 100)
+        mean_perc_auc_calc = np.mean(perc_error_auc_calc)
+        mean_perc_auc_bayes = np.mean(perc_error_auc_bayes)
+        rmse_perc_auc_calc = np.sqrt(np.mean(perc_error_auc_calc**2))
+        rmse_perc_auc_bayes = np.sqrt(np.mean(perc_error_auc_bayes**2))
+        print(f"AUC Percentage Error Mean: PK-TR = {mean_perc_auc_calc:.2f}%, Bayesian = {mean_perc_auc_bayes:.2f}%")
+        print(f"AUC Percentage Error RMSE: PK-TR = {rmse_perc_auc_calc:.2f}%, Bayesian = {rmse_perc_auc_bayes:.2f}%")
+
         ci_auc_calc = (np.mean(auc_diff_calc) - 1.96 * np.std(auc_diff_calc), np.mean(auc_diff_calc) + 1.96 * np.std(auc_diff_calc))
         ci_auc_bayes = (np.mean(auc_diff_bayes) - 1.96 * np.std(auc_diff_bayes), np.mean(auc_diff_bayes) + 1.96 * np.std(auc_diff_bayes))
         print(f"AUC 95% CI: PK-TR ({ci_auc_calc[0]:.2f}, {ci_auc_calc[1]:.2f}), Bayesian ({ci_auc_bayes[0]:.2f}, {ci_auc_bayes[1]:.2f})")
@@ -352,6 +362,16 @@ def main():
             rmse_auc_one_sec2 = np.sqrt(np.mean((auc_bayes_trunc - auc_true_trunc)**2))
             rmse_auc_two_sec2 = np.sqrt(np.mean((auc_two - auc_true_trunc)**2))
             print(f"AUC RMSE: 1-Compartment = {rmse_auc_one_sec2:.2f}, 2-Compartment = {rmse_auc_two_sec2:.2f}")
+
+            # Percentage error for AUC
+            perc_error_auc_one_sec2 = ((auc_bayes_trunc / auc_true_trunc - 1) * 100)
+            perc_error_auc_two_sec2 = ((auc_two / auc_true_trunc - 1) * 100)
+            mean_perc_auc_one_sec2 = np.mean(perc_error_auc_one_sec2)
+            mean_perc_auc_two_sec2 = np.mean(perc_error_auc_two_sec2)
+            rmse_perc_auc_one_sec2 = np.sqrt(np.mean(perc_error_auc_one_sec2**2))
+            rmse_perc_auc_two_sec2 = np.sqrt(np.mean(perc_error_auc_two_sec2**2))
+            print(f"AUC Percentage Error Mean: 1-Compartment = {mean_perc_auc_one_sec2:.2f}%, 2-Compartment = {mean_perc_auc_two_sec2:.2f}%")
+            print(f"AUC Percentage Error RMSE: 1-Compartment = {rmse_perc_auc_one_sec2:.2f}%, 2-Compartment = {rmse_perc_auc_two_sec2:.2f}%")
 
             ci_cp_one = (np.mean(cp_diff_bayes_trunc) - 1.96 * np.std(cp_diff_bayes_trunc), np.mean(cp_diff_bayes_trunc) + 1.96 * np.std(cp_diff_bayes_trunc))
             ci_cp_two = (np.mean(cp_diff_two) - 1.96 * np.std(cp_diff_two), np.mean(cp_diff_two) + 1.96 * np.std(cp_diff_two))

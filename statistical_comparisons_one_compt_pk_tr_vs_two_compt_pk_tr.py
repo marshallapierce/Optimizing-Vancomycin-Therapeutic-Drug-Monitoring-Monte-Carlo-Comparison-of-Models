@@ -458,6 +458,17 @@ def main():
             rmse_one = np.sqrt(np.mean(auc_diff_bayes**2))
             rmse_two = np.sqrt(np.mean(auc_diff_two**2))
             print(f"AUC RMSE: One-Compartment = {rmse_one:.2f}, Two-Compartment = {rmse_two:.2f}")
+            
+            # Percentage error for AUC
+            perc_error_auc_one = ((auc_bayes / auc_true - 1) * 100)
+            perc_error_auc_two = ((auc_fit_two / auc_true - 1) * 100)
+            mean_perc_auc_one = np.mean(perc_error_auc_one)
+            mean_perc_auc_two = np.mean(perc_error_auc_two)
+            rmse_perc_auc_one = np.sqrt(np.mean(perc_error_auc_one**2))
+            rmse_perc_auc_two = np.sqrt(np.mean(perc_error_auc_two**2))
+            print(f"AUC Percentage Error Mean: One-Compartment = {mean_perc_auc_one:.2f}%, Two-Compartment = {mean_perc_auc_two:.2f}%")
+            print(f"AUC Percentage Error RMSE: One-Compartment = {rmse_perc_auc_one:.2f}%, Two-Compartment = {rmse_perc_auc_two:.2f}%")
+            
             print(f"Pearson's r: One-Compartment = {data['pearson_r_bayes']:.3f}, Two-Compartment = {data_two_vrs_two['pearson_r']:.3f}")
             
             # McNemar's test for CDA on paired data

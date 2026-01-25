@@ -261,6 +261,16 @@ def main():
         rmse_cl2 = np.sqrt(np.mean(cl_diff2**2))
         print(f"Cl RMSE: {comp['comp1']['method']} = {rmse_cl1:.2f}, {comp['comp2']['method']} = {rmse_cl2:.2f}")
 
+        # Percentage error for AUC
+        perc_error_auc1 = ((auc1 / auc_true - 1) * 100)
+        perc_error_auc2 = ((auc2 / auc_true - 1) * 100)
+        mean_perc_auc1 = np.mean(perc_error_auc1)
+        mean_perc_auc2 = np.mean(perc_error_auc2)
+        rmse_perc_auc1 = np.sqrt(np.mean(perc_error_auc1**2))
+        rmse_perc_auc2 = np.sqrt(np.mean(perc_error_auc2**2))
+        print(f"AUC Percentage Error Mean: {comp['comp1']['method']} = {mean_perc_auc1:.2f}%, {comp['comp2']['method']} = {mean_perc_auc2:.2f}%")
+        print(f"AUC Percentage Error RMSE: {comp['comp1']['method']} = {rmse_perc_auc1:.2f}%, {comp['comp2']['method']} = {rmse_perc_auc2:.2f}%")
+
         # 95% CI for AUC
         ci_auc1 = (np.mean(auc_diff1) - 1.96 * np.std(auc_diff1), np.mean(auc_diff1) + 1.96 * np.std(auc_diff1))
         ci_auc2 = (np.mean(auc_diff2) - 1.96 * np.std(auc_diff2), np.mean(auc_diff2) + 1.96 * np.std(auc_diff2))

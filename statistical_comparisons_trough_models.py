@@ -209,6 +209,16 @@ def main():
         auc_rmse_2 = np.sqrt(np.mean(auc_diff_2**2))
         print(f"AUC RMSE: 1-Compt Bayes = {auc_rmse_1_bayes:.2f}, 2-Compt Bayes = {auc_rmse_2:.2f}")
 
+        # Percentage error for AUC
+        perc_error_auc_1_bayes = ((auc_bayes / auc_true - 1) * 100)
+        perc_error_auc_2 = ((auc_fit_two / auc_true - 1) * 100)
+        mean_perc_auc_1_bayes = np.mean(perc_error_auc_1_bayes)
+        mean_perc_auc_2 = np.mean(perc_error_auc_2)
+        rmse_perc_auc_1_bayes = np.sqrt(np.mean(perc_error_auc_1_bayes**2))
+        rmse_perc_auc_2 = np.sqrt(np.mean(perc_error_auc_2**2))
+        print(f"AUC Percentage Error Mean: 1-Compt Bayes = {mean_perc_auc_1_bayes:.2f}%, 2-Compt Bayes = {mean_perc_auc_2:.2f}%")
+        print(f"AUC Percentage Error RMSE: 1-Compt Bayes = {rmse_perc_auc_1_bayes:.2f}%, 2-Compt Bayes = {rmse_perc_auc_2:.2f}%")
+
         # Pearson's r for AUC
         print(f"AUC Pearson's r: 1-Compt Bayes = {pearson_r_bayes:.3f}, 2-Compt Bayes = {pearson_r_two:.3f}")
 
@@ -267,6 +277,13 @@ def main():
         # RMSE calculations
         auc_rmse_fixed = np.sqrt(np.mean(auc_diff_fixed**2))
         print(f"AUC RMSE: Fixed VD = {auc_rmse_fixed:.2f}, 2-Compt Bayes = {auc_rmse_2:.2f}")
+
+        # Percentage error for AUC
+        perc_error_auc_fixed = ((auc_fixed / auc_true - 1) * 100)
+        mean_perc_auc_fixed = np.mean(perc_error_auc_fixed)
+        rmse_perc_auc_fixed = np.sqrt(np.mean(perc_error_auc_fixed**2))
+        print(f"AUC Percentage Error Mean: Fixed VD = {mean_perc_auc_fixed:.2f}%, 2-Compt Bayes = {mean_perc_auc_2:.2f}%")
+        print(f"AUC Percentage Error RMSE: Fixed VD = {rmse_perc_auc_fixed:.2f}%, 2-Compt Bayes = {rmse_perc_auc_2:.2f}%")
 
         # Pearson's r for AUC
         print(f"AUC Pearson's r: Fixed VD = {pearson_r_fixed:.3f}, 2-Compt Bayes = {pearson_r_two:.3f}")

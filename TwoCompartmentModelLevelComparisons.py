@@ -311,7 +311,7 @@ auc_true = AUC_true  # shape (N,)
 
 for i, scenario_name in enumerate(scenario_names):
     auc_fit = auc_fits[i]
-    auc_differences = auc_true - auc_fit
+    auc_differences = auc_fit - auc_true
     auc_means = (auc_true + auc_fit) / 2
     with open(f'{output_dir}/bland_altman_data_{scenario_name}{file_suffix}.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
@@ -334,7 +334,7 @@ for scenario_name in scenario_names:
     plt.axhline(np.mean(auc_diffs) + 1.96 * np.std(auc_diffs), color='blue', linestyle='--', label='+1.96 SD')
     plt.axhline(np.mean(auc_diffs) - 1.96 * np.std(auc_diffs), color='blue', linestyle='--', label='-1.96 SD')
     plt.xlabel('Mean AUC')
-    plt.ylabel('AUC Difference')
+    plt.ylabel('AUC Difference (Predicted - True)')
     plt.title(f'Bland-Altman Plot for {scenario_name}')
     plt.legend()
     plt.grid(True)

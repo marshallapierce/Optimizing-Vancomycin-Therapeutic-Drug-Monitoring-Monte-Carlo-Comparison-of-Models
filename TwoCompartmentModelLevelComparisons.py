@@ -179,7 +179,7 @@ for idx, (times_fit_list, label) in enumerate(level_scenarios):
     
     # For the full early levels scenario, save the detailed CSV and grids, Input time determines what prints in grids_two_vrs_two csv file
     #no spaces between commas in label
-    if label == "10": #"10": #"2,10": #"0,1,2,3,4,8,9,10": #"2,4,8,10":Cl # needs to match the scenario for the times wanted in grid (trough, Pk/tr, or level times 2, 4, 8, 10 ect)
+    if label == "2,10": #"10": #"2,10": #"0,1,2,3,4,8,9,10": #"2,4,8,10":Cl # needs to match the scenario for the times wanted in grid (trough, Pk/tr, or level times 2, 4, 8, 10 ect)
         # Calculate fitted levels
         fitted_levels = np.zeros((N, len(times_fit)))
         for i in range(N):

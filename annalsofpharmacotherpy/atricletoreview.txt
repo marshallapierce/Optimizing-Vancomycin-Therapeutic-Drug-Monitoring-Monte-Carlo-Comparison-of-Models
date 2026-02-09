@@ -1,0 +1,410 @@
+Optimizing Vancomycin Therapeutic Drug Monitoring: Monte Carlo Comparison of Analytical and Bayesian AUC Calculation Methods Using the Goti Model
+Marshall A Pierce PharmD, Neil Davis PharmD, Josh Crawford PharmD, Dan Miller PharmD, Rachel Perry PharmD
+Keywords 
+Monte Carlo Simulation, Vancomycin, AUC Calculation, Goti Model, Therapeutic Drug Monitoring
+
+Marshall A Pierce PharmD 
+No affiliation
+10905 Kincaid Road
+Glen Allen, VA 23060
+804-836-5639
+Mpierce1026@aol.com
+
+Neil Davis PharmD
+
+
+Josh Crawford PharmD
+
+
+Dan Miller PharmD
+
+
+
+Rachel Perry PharmD
+
+
+
+
+Ethical Considerations
+This article does not contain any studies with human or animal participants.
+
+Consent to participate
+Not applicable
+
+Conflicts of Interest
+The authors declared no potential conflict of interest with respect to the research, authorship, and/or publication of this article. 
+
+Financial Disclosure
+The authors received no financial support for the research, authorship, and/or publication of this article.
+Data Availability
+Author Contributions
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Background: Current guidelines for vancomycin dosing recommend AUC-guided monitoring to optimize efficacy and minimize toxicity, targeting an AUC/MIC ratio of 400–600 mg·h/L in patients with serious MRSA infections or high nephrotoxicity risk. Monitoring approaches include analytic one-compartment models and Bayesian methods, but prior studies have not compared these methods using known AUC values.
+Objective: This Monte Carlo study compared the accuracy and agreement of AUC estimates for one- and two-compartment models using trough and peak-trough steady state levels, employing Bayesian and non-Bayesian techniques, against the actual AUC of the Goti model.
+Methods: Pharmacokinetic analyses were conducted using Monte Carlo simulations of the Goti model. Thirty thousand simulations were performed per model. Goti model AUCs were compared to analytic one-compartment models (peak and trough, fixed VD trough), and Bayesian one- and two-compartment models (trough, peak-trough). Methods were evaluated for AUC bias, RMSE, 95% confidence intervals, Pearson’s correlation, and clinical decision agreement (CDA) by the percentage of predicted AUCs aligning with Goti model AUCs in predefined brackets: <400, 400–600, >600 mg·h/L.
+Results: Bayesian peak-trough methods, both one- and two-compartment, showed superior accuracy and precision, with the lowest RMSE, narrowest confidence intervals, and highest CDA (>88%). No significant advantage was found for two-compartment Bayesian models over one-compartment models with sparse sampling. Trough-only and fixed VD methods had higher RMSE, wider intervals, and lower CDA.
+Conclusion and Relevance: Bayesian peak-trough methods provide the most accurate and clinically reliable vancomycin AUC estimates, supporting their adoption for therapeutic drug monitoring to optimize efficacy and minimize nephrotoxicity.
+
+
+
+
+
+
+ 
+
+
+Vancomycin, a glycopeptide antibiotic, is recommended for the treatment of serious infections caused by methicillin-resistant Staphylococcus aureus (MRSA). However, vancomycin therapy is associated with acute kidney injury (AKI) in 5% to 43% of patients, which correlates with increased morbidity and mortality.1 The risk of AKI escalates with daily area under the curve (AUC) values exceeding 650 to 1300 mg·h/L2, 3, 4 or trough concentrations maintained above 15 to 20 mcg/mL.5 Factors associated with nephrotoxicity include elevated body weight, preexisting renal dysfunction, critical illness, concomitant use of vasopressors, and administration of other nephrotoxic agents.4, 6-16 Current consensus guidelines for vancomycin dosing emphasize optimizing efficacy while minimizing toxicity through AUC-guided monitoring, targeting an AUC/minimum inhibitory concentration (MIC) ratio of 400 to 600 mg·h/L (assuming an MIC ≤1 mcg/mL determined by broth microdilution) in patients with serious MRSA infections or those at high risk for nephrotoxicity. Target AUC should be achieved in the first 48 hours of therapy. Recommended AUC monitoring approaches include the one-compartment model using analytic equations, which requires a post-distribution peak concentration (drawn 1 to 2 hours post-infusion) and a trough concentration (drawn at the end of the dosing interval), both obtained at steady state and preferably within the same dosing interval. Alternatively, Bayesian methods incorporating priors derived from richly sampled vancomycin pharmacokinetic data may be employed, utilizing a peak (drawn 1 to 2 hours post-infusion) and a trough (drawn at the end of the dosing interval) concentration.17
+Goti et al. studied vancomycin pharmacokinetics (PK) in 1812 patients with 336 patients receiving high flux intermittent hemodialysis and routine clinical monitoring.18 A two-compartment PK model was developed for vancomycin in non-hemodialysis and hemodialysis patients. The Goti model has been shown to have the best predictive performance with a relative Bias of -4.41% and a relative RMSE of 44.3% when compared to thirty models.19
+Studies have investigated the agreement of first order analytic equations and two compartment model Bayesian AUC calculation methods and their associated variability from vancomycin serum level data, but have not compared the methods using known AUC values.2, 20, 21  Analytic AUC calculation methods have been well described.22-24  Our Monte Carlo study aimed to compare the accuracy and agreement of AUC estimates from one-compartment and two-compartment models using trough and peak-trough steady state levels with Bayesian and non-Bayesian techniques against the actual AUC, assuming the Goti two-compartment model best characterizes vancomycin pharmacokinetics.
+ Methods
+Study Design and Monte Carlo Simulation
+Pharmacokinetic analyses were performed using Monte Carlo simulations implemented in Python. Monte Carlo simulation involves random sampling to approximate solutions to quantitative problems, employing randomly generated values based on population parameter means and standard deviations to simulate large datasets and evaluate their properties. Simulations repeatedly simulate the model, drawing a different random set of values from the sampling distribution of the model's parameters, the result of which is a large data set of possible outcomes.25
+This study assesses the influence of the number of steady state serum vancomycin levels monitored during a dosing interval and model selected on the accuracy of area under the curve (AUC) calculations using one-compartment and Goti two-compartment pharmacokinetic models, assuming the Goti two-compartment model best characterizes vancomycin pharmacokinetics. This simulation-based study utilized Monte Carlo methods to evaluate the accuracy of vancomycin AUC estimations with steady state levels. Post-infusion serum levels were evaluated at the following time points: 2 levels (2 and 10 hours); and 1 level (10 hours). Bayesian fittings were applied to models, with additional non-Bayesian methods used for the one-compartment model. Simulations were conducted in Python, generating randomized pharmacokinetic (PK) parameters from the Goti two-compartment model's population means, assuming normal distribution with variability up to two standard deviations. The randomized parameters values were treated as the true parameter values. Patients were simulated, with mean Goti clearance total values aligned to Cockcroft-Gault creatinine clearance of 120 mL/min. The dose of 1125 mg was selected to target an AUC of 500 mg*h/L based on the two-compartment population mean clearance total for the creatinine clearance of 120 ml/min.  Dosing interval was set at 12 hours, with a 2-hour infusion period. Patient weight was set at 70 kg, and a MIC of 1 ml/L was assumed. Thirty thousand virtual patients were created. True serum levels were calculated with the randomized PK parameters using standard two-compartment open-model equations for intermittent infusion. Randomized values for each true level were generated from a normal distribution to account for assay variability with a coefficient of variability of 0.1, representing measured levels.  A fixed randomization seed ensured reproducibility across simulations.
+Data fitting for each row employed Python's least-squares optimization routine with bounds to minimize the sum of squared errors between randomized (measured) and predicted levels for the two-compartment model, optimizing central volume of distribution, peripheral volume of distribution, clearance total, and distribution clearance. Predicted levels and steady state AUC were calculated using standard two-compartment open-model equations for intermittent infusion. All two-compartment fittings were Bayesian. For the non-Bayesian one-compartment model, standard open-model equations for intermittent infusion were used to estimate volume of distribution (Vd), elimination rate constant (K), clearance, and AUC from the 2- and 10-hour levels via the Sawchuk-Zaske method. For one-compartment trough-only fitting (10-hour level), Vd was fixed at the geometric mean derived from Sawchuk-Zaske calculations excluding values calculated less than zero, and clearance was optimized using least-squares fitting. The Sawchuk-Zaske geometric mean Vd and mean clearance were used as priors in the Bayesian one-compartment methods.
+Bayesian one-compartment fittings assumed population mean parameter coefficients of variation of 0.3. The Goti two-compartment model parameters were: Cl_total = 4.5 × (CrCl/120)^0.8 L/h, V_c = 58.4 × (WT/70) L, V_p = 38.4 L, Cl_d = 6.5 L/h. Coefficients of variation were 0.3 for V_c, V_p, and Cl_total; 0.4 for Cl_d; and 0.1 for assay variability
+
+
+
+Statistical Calculations
+The accuracy and precision of AUC estimates produced by each dosing method were evaluated using several statistical measures. Root mean squared error (RMSE) was calculated as RMSE=\sqrt{\frac{1}{n}\sum\left(predicted_i-true_i\right)^2} to assess the precision of each method, while bias was quantified as Bias=\frac{1}{n}\sum\left(predicted_i-true_i\right) to assess accuracy.26 Clinical decision agreement (CDA) was determined by the proportion of predicted AUC values that matched the true AUC within clinically relevant brackets: less than 400, 400 to 600, and greater than 600 mg·h/L. This categorical approach reflects the practical thresholds used in vancomycin therapeutic drug monitoring.
+Agreement between predicted and actual AUC values was further visualized using Bland-Altman plots, which included 95% confidence intervals. Additional statistical analyses included McNemar’s Chi-Square test for categorical agreement, paired t-tests for mean differences, and calculation of Pearson’s correlation coefficient (r) to assess linear association. Percent AUC error was also computed as PercentAUCerror=\frac{predicted-true}{true}\times100 to provide a standardized measure of deviation.
+These statistical approaches collectively enabled a comprehensive comparison of dosing methods, focusing on both their quantitative performance and their clinical relevance for vancomycin monitoring.
+
+Results
+Peak-Trough Method Comparisons
+In comparing the one-compartment analytic peak-trough method with the Bayesian one-compartment peak-trough approach, significant differences were observed in area under the curve (AUC) predictions, with mean differences of -3.46 for the analytic method and -6.86 for the Bayesian method (paired t-test: t = 32.902, p < 0.001, p < 0.001 Bonferroni corrected). Root mean square error (RMSE) values were 44.72 and 40.78, respectively, with 95% confidence intervals (CI) of (-90.86, 83.93) and (-85.65, 71.94), and Pearson's correlation coefficients (r) of 0.976 and 0.979. The CDA was 86.8% for analytic method and 88.3% for the Bayesian the one-compartment method. Clinical decision agreement (CDA) classifications showed 25,865 for the analytic method and 26,279 for the Bayesian method (McNemar's test: χ² = 127.863, p < 0.001, p < 0.001, Bonferroni corrected). The Bayesian one-compartment method was superior. 
+When evaluating the one-compartment Bayesian peak-trough versus the two-compartment Bayesian peak-trough models, AUC mean differences were -6.86 and -5.39 (paired t-test: t = -4.746, p < 0.001, p < 0.001 Bonferroni corrected), with RMSE values of 40.78 and 40.75, 95% CI of (-85.65, 71.94) and (-84.57, 73.78), and r values of 0.979 for both. The CDA was 88.2% for one-compartment Bayesian method and 88.3% for the two-compartment Bayesian method.  CDA classifications were 26,279 and 26,305 (McNemar's test: χ² = 0.134, p = 0.714, Bonferroni corrected p = 1.000). The methods were equivalent as the CDA were not statistically different, and AUC 95% CI and AUC RMSE were similar. 
+Trough Method Comparisons
+For the trough-only comparisons between one-compartment Bayesian and two-compartment Bayesian models, AUC mean differences were -10.22 and -5.24 (paired t-test: t = -14.379, p < 0.001, Bonferroni corrected), with RMSE of 56.34 and 55.33, 95% CI of (-118.81, 98.38) and (-113.20, 102.73), and r values of 0.961 and 0.960. The CDA was 83.5 % for trough-only one-compartment Bayesian method and 83.5% for the trough-only two-compartment Bayesian method.CDA classifications were 24,899 and 24,897 (McNemar's test: χ² = 0.000, p = 0.988). These methods were equivalent as CDA were not statistically different and AUC RMSE were similar.
+In the comparison of one-compartment fixed volume of distribution (VD) trough versus two-compartment Bayesian trough, AUC mean differences were -15.03 and -5.24 (paired t-test: t = -26.825, p < 0.001, Bonferroni corrected), with RMSE of 58.01 and 55.33, 95% CI of (-124.85, 94.79) and (-113.20, 102.73), and r values of 0.961 and 0.960. The CDA was 82.7 % for one-compartment fixed volume of distribution method and 83.5% for the trough-only two-compartment Bayesian trough method.CDA classifications were 24,666 and 24,897 (McNemar's test: statistic = 10.036, p < 0.01, Bonferroni corrected p < 0.01). The two-compartment Bayesian trough method was superior as CDA was statistically different, and 95% AUC CI and AUC RMSE were dissimilar. 
+
+Trough to Peak-Trough Method Comparisons
+In the comparison of one-compartment Bayesian trough versus one-compartment Bayesian peak-trough, AUC mean differences were -9.56 and -7.21 (paired t-test: t = -9.450, p < 0.001, p < 0.001, Bonferroni corrected), with RMSE of 56.83 and 41.29, 95% CI of (-119.36, 100.24) and (-86.89, 72.48), and r values of 0.960 and 0.979. The CDA was 83.6% for one-compartment Bayesian trough method and 88.2% for the one-compartment Bayesian peak-trough method. CDA classifications were 25,090 and 26,475 (McNemar's test: statistic = 486.280, p < 0.001, Bonferroni corrected: p < 0.001). The one compartment Bayesian peak-trough was superior.
+
+In the comparison of one-compartment Bayesian trough versus one-compartment analytical peak-trough, AUC mean differences were -9.56 and -3.91 (paired t-test: t = -16.441, p < 0.001, p < 0.001 Bonferroni corrected), with RMSE of 56.83 and 45.24, 95% CI of (-119.36, 100.24) and (-92.25, 84.43), and r values of 0.960 and 0.976. The CDA was 83.6% for 1 compartment Bayesian trough method and 86.9% for the 1 compartment peak-trough method. CDA classifications were 25,090 and 26,057 (McNemar's test: statistic = 177.170, p < 0.001, Bonferroni corrected: p < 0.001). The one compartment analytic peak-trough method was superior.
+
+In the comparison of two-compartment Bayesian trough versus one-compartment Bayesian peak-trough, AUC mean differences were -5.24 and -7.21 (paired t-test: t = 5.485, p < 0.001, p < 0.001 Bonferroni corrected), with RMSE of 55.67 and 41.29, 95% CI of (-113.86, 103.38) and (-86.89, 72.48), and r values of 0.961 and 0.979. The CDA was 83.6% for two-compartment Bayesian trough method and 88.2% for the one-compartment Bayesian peak trough method. CDA classifications were 25,099 and 26,475 (McNemar's test: statistic = 352.597, p < 0.001, Bonferroni corrected: p < 0.001). The one compartment Bayesian peak-trough method was superior. 
+
+In the comparison of two-compartment Bayesian trough versus two-compartment Bayesian peak-trough, AUC mean differences were -5.24 and -5.46 (paired t-test: t = 0.965, p = 0.334, Bonferroni corrected p = 1.000), with RMSE of 55.67 and 41.06, 95% CI of (-113.86, 103.38) and (-85.23, 74.30), and r values of 0.961 and 0.979. The CDA was 83.6% for two-compartment Bayesian trough method and 88.3% for the two-compartment Bayesian peak trough method. CDA classifications were 25,099 and 26,508 (McNemar's test: statistic = 543.886, p < 0.001, Bonferroni corrected p < 0.001). The two compartment Bayesian peak-trough method was superior.
+ In summary, Bayesian one-compartment and two-compartment models exhibited similar performance when compared using the same number of levels, whether trough or peak-trough sampling was employed. Across all approaches, peak-trough methods, including the one-compartment analytic peak-trough, one-compartment Bayesian peak-trough, and two-compartment Bayesian peak-trough, consistently outperformed both Bayesian one-compartment and two-compartment trough methods. Notably, the Bayesian one-compartment peak-trough method demonstrated superior accuracy and clinical decision agreement compared to the analytic peak-trough method, while the Bayesian two-compartment trough method surpassed the one-compartment fixed volume of distribution (Vd) method. Overall, Bayesian peak-trough models achieved the lowest area under the curve (AUC) root mean squared error (RMSE), the narrowest 95% AUC confidence intervals, and the highest clinical decision agreement (CDA). In contrast, the one-compartment fixed Vd trough method performed the worst, with the highest AUC RMSE, widest confidence intervals, and lowest CDA. These findings underscore the superior performance of Bayesian one-compartment and two-compartment approaches when peak-trough methods are utilized for pharmacokinetic AUC estimation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Table 1: Summary of Peak-Trough Model Comparisons
+Models Compared	Metric	Method 
+1	Method 2	Statistical Test
+One-Compartment 
+Analytic Peak-Trough vs 
+One-Compartment Bayesian Peak-Trough	AUC Diff (mean)	-3.46	 -6.86	Paired t-test: t = 32.902, p < 0.001 (Bonferroni corrected: p < 0.001)
+	AUC RMSE	44.72	40.78	
+	AUC 95% CI	-90.86, 83.93	-85.65, 71.94	
+	AUC Pearson's r	0.976	 0.979	
+	AUC Percentage Error	-0.78%	-0.86%	 
+	CDA vr True AUC	86.8%	88.2%	
+	CDA Correct Classifications	25865	26279	McNemar's Test: χ² = 127.863, p < 0.001 (Bonferroni corrected: p < 0.001)
+One-Compartment Bayesian Peak-Trough vs 
+Two-Compartment Bayesian Peak-Trough	AUC Diff (mean)	-6.86	-5.39	Paired t-test: t = -4.746, p < 0.001 (Bonferroni corrected: p < 0.001)
+	AUC RMSE	40.78	40.75	
+	AUC 95% CI	-85.65, 71.94	 -84.57, 73.78	
+	AUC Pearson's r	 0.979	 0.979	
+	AUC Percentage Error	-0.86%	-0.52%	 
+	CDA vr True AUC	88.2%	88.3%	
+	CDA Correct Classifications	26279	 26305	McNemar's Test: χ² = 0.134, p = 0.714 (Bonferroni corrected: p = 1.000)
+
+
+
+
+
+
+
+
+
+Table 2: Summary of Trough Model Comparisons
+One-Compartment Bayesian Trough vs 
+Two-Compartment Bayesian Trough	AUC Diff (mean)	 -10.22	-5.24	Paired t-test: t = -14.379, p < 0.001 (Bonferroni corrected: p < 0.001)
+	AUC RMSE	 56.34	 55.33	
+	AUC 95% CI	-118.81, 98.38	-113.20, 102.73	
+	AUC Pearson's r	 0.961	0.960	
+	AUC Percentage Error	-0.66%	-0.11%	 
+	CDA vr True AUC	83.5%	83.5%	
+	CDA Correct Classifications	24899	24897	McNemar's Test: χ² = 0.000, p = 0.988
+One-Compartment Fixed Vd Trough vs 
+Two-Compartment Bayesian Trough	AUC Diff (mean)	-15.03	 -5.24	Paired t-test: t = -26.825, p < 0.001 (Bonferroni corrected: p < 0.001)
+	AUC RMSE	 58.01	 55.33	
+	AUC 95% CI	 -124.85, 94.79	-113.20, 102.73	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Table 3: Summary of Trough to Peak-Trough Model Comparisons
+Models Compared	Metric	Method 
+1	Method 2	Statistical Test
+Two-Compartment Bayesian Trough vs 
+One-Compartment Bayesian Peak-Trough	AUC Diff (mean)	 -5.24	-7.21	Paired t-test: t = 5.485, p < 0.001 (Bonferroni corrected: p < 0.001)
+	AUC RMSE	55.67	41.29	
+	AUC 95% CI	 -113.86, 103.38	-86.89, 72.48	
+	AUC Pearson's r	 0.961	 0.979	
+	AUC Percentage Error	-0.11%	-0.90%	 
+	CDA vr True AUC	83.6%	88.2%	
+	CDA Correct Classifications	25099	 26475	McNemar's Test: χ² = 352.597, p < 0.001 (Bonferroni corrected: p < 0.001)
+Two-Compartment Bayesian Trough vs 
+Two-Compartment Bayesian Peak-Trough	AUC Diff (mean)	-5.24	-5.46	Paired t-test: t = 0.965, p = 0.334 (Bonferroni corrected: p = 1.000)
+	AUC RMSE	55.67	41.06	
+	AUC 95% CI	-113.86, 103.38	-85.23, 74.30	
+	AUC Pearson's r	 0.961	0.979	
+	AUC Percentage Error	-0.11%	-0.52%	 
+	CDA vr True AUC	83.6%	88.3%	
+	CDA Correct Classifications	 25099	26508	McNemar's Test: χ² = 543.886, p < 0.001 (Bonferroni corrected: p < 0.001)
+One-Compartment Bayesian Trough vs 
+One-Compartment Bayesian Peak-Trough	AUC Diff (mean)	-9.56	 -7.21	Paired t-test: t = -9.450, p < 0.001 (Bonferroni corrected: p < 0.001)
+	AUC RMSE	 56.83	41.29	
+	AUC 95% CI	-119.36, 100.24	-86.89, 72.48	
+	AUC Pearson's r	0.960	0.979	
+	AUC Percentage Error	-0.58%	-0.90%	 
+	CDA vr True AUC	83.6%	88.2%	
+	CDA Correct Classifications	25090	 26475	McNemar's Test: χ² = 486.280, p < 0.001 (Bonferroni corrected: p < 0.001)
+One-Compartment Bayesian Trough vs 
+One-Compartment 
+Analytic Peak-Trough	AUC Diff (mean)	-9.56	 -3.91	Paired t-test: t = -16.441, p < 0.001 (Bonferroni corrected: p < 0.001)
+	AUC RMSE	56.83	 45.24	
+	AUC 95% CI	-119.36, 100.24	-92.25, 84.43	
+	AUC Pearson's r	0.960	0.976	
+	AUC Percentage Error	-0.58%	-0.82%	 
+	CDA vr True AUC	83.6%	86.9%	
+	CDA Correct Classifications	25090	26057	McNemar's Test: χ² = 177.170, p < 0.001 (Bonferroni corrected: p < 0.001)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Comparison of Pharmacokinetic Models
+Table: Summary of Model Comparisons
+
+Models Compared	Metric	Method 
+1	Method 2	Statistical Test
+One-Compartment 
+Analytic Peak-Trough vs 
+One-Compartment Bayesian Peak-Trough	AUC Diff (mean)	-3.46	 -6.86	Paired t-test: t = 32.902, p < 0.001
+(Bonferroni corrected: p < 0.001)
+	AUC RMSE	44.72	40.78	
+	AUC 95% CI	-90.86, 83.93	-85.65, 71.94	
+	AUC Pearson's r	0.976	 0.979	
+	AUC Percentage Error	-0.78%	-0.86%	 
+	CDA vr True AUC	86.8%	88.2%	
+	CDA Correct Classifications	25865	26279	McNemar's Test: χ² = 127.863, p < 0.001 (Bonferroni corrected: p < 0.001)
+One-Compartment Bayesian Peak-Trough vs 
+Two-Compartment Bayesian Peak-Trough	AUC Diff (mean)	-6.86	-5.39	Paired t-test: t = -4.746, p < 0.001
+ (Bonferroni corrected: p < 0.001)
+	AUC RMSE	40.78	40.75	
+	AUC 95% CI	-85.65, 71.94	 -84.57, 73.78	
+	AUC Pearson's r	 0.979	 0.979	
+	AUC Percentage Error	-0.86%	-0.52%	 
+	CDA vr True AUC	88.2%	88.3%	
+	CDA Correct Classifications	26279	 26305	McNemar's Test: χ² = 0.134, p = 0.714 (Bonferroni corrected: p = 1.000)
+One-Compartment Bayesian Trough vs 
+Two-Compartment Bayesian Trough	AUC Diff (mean)	 -10.22	-5.24	Paired t-test: t = -14.379, p < 0.001 (Bonferroni corrected: p < 0.001)
+	AUC RMSE	 56.34	 55.33	
+	AUC 95% CI	-118.81, 98.38	-113.20, 102.73	
+	AUC Pearson's r	 0.961	0.960	
+	AUC Percentage Error	-0.66%	-0.11%	 
+	CDA vr True AUC	83.5%	83.5%	
+	CDA Correct Classifications	24899	24897	McNemar's Test: χ² = 0.000, p = 0.988
+One-Compartment Fixed Vd Trough vs 
+Two-Compartment Bayesian Trough	AUC Diff (mean)	-15.03	 -5.24	Paired t-test: t = -26.825, p < 0.001 (Bonferroni corrected: p < 0.001)
+	AUC RMSE	 58.01	 55.33	
+	AUC 95% CI	 -124.85, 94.79	-113.20, 102.73	
+	AUC Pearson's r	 0.961	 0.960	
+	AUC Percentage Error	-2.76%	0.11%	 
+	CDA vr True AUC	82.7%	83.5%	
+	CDA Correct Classifications	24666	24897	McNemar's Test: χ² = 10.036, p < 0.01
+Two-Compartment Bayesian Trough vs 
+One-Compartment Bayesian Peak-Trough	AUC Diff (mean)	 -5.24	-7.21	Paired t-test: t = 5.485, p < 0.001 
+(Bonferroni corrected: p < 0.001)
+	AUC RMSE	55.67	41.29	
+	AUC 95% CI	 -113.86, 103.38	-86.89, 72.48	
+	AUC Pearson's r	 0.961	 0.979	
+	AUC Percentage Error	-0.11%	-0.90%	 
+	CDA vr True AUC	83.6%	88.2%	
+	CDA Correct Classifications	25099	 26475	McNemar's Test: χ² = 352.597, p < 0.001 (Bonferroni corrected: p < 0.001)
+Two-Compartment Bayesian Trough vs 
+Two-Compartment Bayesian Peak-Trough	AUC Diff (mean)	-5.24	-5.46	Paired t-test: t = 0.965, p = 0.334 
+(Bonferroni corrected: p = 1.000)
+	AUC RMSE	55.67	41.06	
+	AUC 95% CI	-113.86, 103.38	-85.23, 74.30	
+	AUC Pearson's r	 0.961	0.979	
+	AUC Percentage Error	-0.11%	-0.52%	 
+	CDA vr True AUC	83.6%	88.3%	
+	CDA Correct Classifications	 25099	26508	McNemar's Test: χ² = 543.886, p < 0.001 (Bonferroni corrected: p < 0.001)
+One-Compartment Bayesian Trough vs 
+One-Compartment Bayesian Peak-Trough	AUC Diff (mean)	-9.56	 -7.21	Paired t-test: t = -9.450, p < 0.001 
+(Bonferroni corrected: p < 0.001)
+	AUC RMSE	 56.83	41.29	
+	AUC 95% CI	-119.36, 100.24	-86.89, 72.48	
+	AUC Pearson's r	0.960	0.979	
+	AUC Percentage Error	-0.58%	-0.90%	 
+	CDA vr True AUC	83.6%	88.2%	
+	CDA Correct Classifications	25090	 26475	McNemar's Test: χ² = 486.280, p < 0.001 (Bonferroni corrected: p < 0.001)
+One-Compartment Bayesian Trough vs 
+One-Compartment 
+Analytic Peak-Trough	AUC Diff (mean)	-9.56	 -3.91	Paired t-test: t = -16.441, p < 0.001 (Bonferroni corrected: p < 0.001)
+	AUC RMSE	56.83	 45.24	
+	AUC 95% CI	-119.36, 100.24	-92.25, 84.43	
+	AUC Pearson's r	0.960	0.976	
+	AUC Percentage Error	-0.58%	-0.82%	 
+	CDA vr True AUC	83.6%	86.9%	
+	CDA Correct Classifications	25090	26057	McNemar's Test: χ² = 177.170, p < 0.001 (Bonferroni corrected: p < 0.001)
+
+
+
+
+
+
+
+
+
+
+
+
+Discussion
+Accurate estimation of vancomycin AUC is critical for optimizing therapeutic efficacy and minimizing toxicity, particularly in patients at risk for nephrotoxicity. Our study demonstrates that Bayesian peak-trough methods, whether one- or two-compartment consistently outperform trough-only and analytic approaches, yielding the lowest root mean squared error, narrowest 95% confidence intervals, and highest clinical decision agreement. Notably, two-compartment Bayesian models did not confer additional benefit over one-compartment Bayesian models when only sparse sampling was available, suggesting that increased model complexity may not translate to improved clinical utility in routine practice. These findings reinforce current consensus guidelines advocating for AUC-guided dosing and support the integration of Bayesian peak-trough approaches into standard therapeutic drug monitoring protocols. In contrast, trough-only and fixed Vd methods demonstrated inferior performance, underscoring the limitations of these approaches for precise vancomycin dosing.
+
+This analysis did not demonstrate a significant advantage of two-compartment Bayesian methods over one-compartment Bayesian approaches when sampling was limited to one or two levels, suggesting that the increased complexity of the two-compartment model may be unnecessary for routine clinical monitoring. Clinical decision agreement rates of 86.8%, 88.2%, and 88.3%, AUC RMSE values of 44.7, 40.8, and 40.8 mg·h/L, and AUC 95% confidence intervals ranging from -90.7 to 83.9, -85.7 to 71.9, and -84.6 to 73.8 were achieved with peak-trough sampling across models (Sawchuck-Zaske, Bayesian one-compartment, and Bayesian two-compartment). Although two-compartment models provide a more detailed description of vancomycin pharmacokinetics with intensive sampling, this benefit did not extend to sparse monitoring (one or two steady state levels) using the Goti model. 
+
+For Bayesian trough methods, the actual AUC frequently fell outside the target range of 400–600 mg·h/L when the goal AUC was 500 mg·h/L, as reflected by the wide 95% confidence intervals for AUC predictions (-119.36 to 103.38 mg·h/L). In contrast, monitoring with both peak and trough concentrations narrowed the 95% AUC confidence intervals, one-compartment analytic (-92.25, 94.43), one-compartment Bayesian (-86.89, 72.48), and two-compartment Bayesian (-85.23, 74.30), and these intervals were contained within the 400–600 mg·h/L range when targeting an AUC of 500 mg·h/L.
+In a real-world study, Olney et al. compared area under the curve (AUC) calculations derived from first-order analytic equations using steady state peak and trough concentrations to those obtained from Bayesian two-compartment models with InsightRxTm software in 978 patients. Their analysis included both trough-only and peak-trough sampling strategies. Where available, corresponding data from our study are provided in brackets for comparison.
+For linear versus two-compartment Bayesian methods using two concentrations, Olney et al. reported a Pearson’s correlation coefficient (r) of 0.963 [0.976, 0.979], categorical clinical agreement (AUC 400–600 mg·h/L) of 87.4% [86.6%, 88.3%], Bland-Altman bias of –11.5 mg·h/L [–3.46, –6.86], and 95% AUC confidence intervals of –99 to 76 [–90.86 to 83.93, –85.65 to 71.94]. For linear versus two-compartment Bayesian methods using a single concentration, r was 0.823, clinical agreement was 76.8%, bias was –21.9 mg·h/L, and 95% AUC confidence intervals ranged from –197 to 153. Comparing two-compartment Bayesian methods using two versus one concentration, r was 0.931 [0.979, 0.961], clinical agreement was 88.5% [88.3%, 83.6%], bias was 10.4 mg·h/L [–5.46, –5.24], and 95% AUC confidence intervals were –92 to 113 [–85.2 to 74.3, –113.9 to 103.4].
+It is important to note that our results are not directly comparable to those of Olney et al., as their study estimated AUC using each method and compared models to one another, rather than comparing them to known AUCs. In contrast, our analysis compared estimated AUCs from each model to the Goti model AUC, but the resulting values fall within similar ranges to those reported by Olney et al.
+Several studies, noted below, have used a reference two-compartment model with simulated or clinical data to create peak-trough and trough data sets. The sparse data sets were used to create one and two-compartment models, fittings of the peak-trough and trough data sets were performed, and the calculated AUCs were compared to the reference model's AUCs.   
+Maung et al. evaluated AUC estimates for one- and two-compartment models constructed from sparse data generated by the Goti model, comparing these estimates to the Goti reference data. In their simulation, 100 patients received a dose of 1000 mg every 12 hours with a 2-hour infusion period, generating both trough and peak-trough data sets. These data sets were used to build four models: a one-compartment model using only troughs, a one-compartment model using peak-trough data, a two-compartment model using only troughs, and a two-compartment model using both peak and trough concentrations. For models based solely on trough data, only clearance was estimated while other parameters were fixed. Each model was then used to generate serum concentration profiles for the simulated patients, and the resulting AUCs were compared to the Goti reference set.
+Their 48-hour comparisons, with corresponding data from our study provided in brackets where available, were as follows:
+	Two-compartment trough model: mean AUC bias 92.61, 95% AUC CI (–105.9, 291.1) [–5.24, 95% AUC CI (–113.2, 102.7)]
+	One-compartment trough model: AUC bias –14.24, 95% AUC CI (–176.7, 148.2) [–15.03 one-compartment fixed Vd, –10.22 one-compartment Bayesian; fixed Vd 95% AUC CI (–124.9, 94.8), Bayesian (–113.2, 102.7)]
+	One-compartment peak-trough model: AUC bias –6.45, 95% AUC CI (–281, 268) [–6.86, (–90.7, 83.9)]
+	Two-compartment peak-trough model: AUC bias –13.99, 95% AUC CI (–281.7, 253) [–5.39, 95% AUC CI (–84.6, 73.8)]
+In our analysis, we used the Goti model to generate 30,000 normally distributed randomized pharmacokinetic parameters to calculate randomized serum levels. Peak-trough randomized levels were analyzed using both linear analytic methods and one-compartment model pharmacokinetic parameters were generated. The one-compartment and Goti two-compartment models were then fitted to the randomized trough and peak-trough levels, and the predicted AUCs were compared to the true AUCs.
+Differences in results between the studies may be attributed to methodological variations: Maung et al. constructed a two-compartment model, whereas we used the original Goti model, and our sample size was substantially larger.
+Neely et al. combined three data sets totaling 47 patients and constructed two-compartment population models using the full reference data set, a peak-trough data set, and a trough data set. Although the sample size in the study by Neely et al. was relatively small, each patient had rich data sampling, with five to thirteen vancomycin levels collected per individual. Bayesian priors were calculated from both the full data set and the peak-trough data set, and these priors were subsequently applied to the trough model. The full data model with Bayesian priors was then compared to the peak-trough and trough models, both with and without Bayesian priors.
+Results from the two-compartment non-Bayesian trough and peak-trough models showed that the median difference between the AUC from the full set and the peak-trough data set was 159.3 (95% CI: 63.6 to 284.6), with an AUC Peak-trough/AUC Full ratio of 0.86 (0.81 to 0.93). The median difference between the AUC from the full set and the trough data set was 341.9 (189.8 to 553.4), and the mean AUC Trough/AUC Full ratio was 0.78 (0.67 to 0.89), indicating that both non-Bayesian models tended to underpredict the reference AUC.
+When Bayesian priors derived from the full data set were applied to the trough model, the difference between the full set and the full-trough model was much smaller at 23.1 (–21.8 to 71.7), and the AUC Full-Trough/AUC Full ratio improved to 0.97 (0.93–1.02) [0.999]. In contrast, when peak-trough priors were used for the trough model, the median difference between the full set and the trough model was 229.1 (99.9–352.7), with an AUC Trough/AUC Full ratio of 0.85 (0.79 to 0.91). The trough model with full data set priors was able to accurately estimate the AUC, whereas accuracy was reduced when using peak-trough data set priors.
+The only overlap between our analyses and those of Neely et al. was in the two-compartment Bayesian trough model with full data set Bayesian priors, where the AUC Trough/AUC Full ratios were similar. Data from our study are provided in brackets where available [ ].
+In summary, our findings confirm that Bayesian peak-trough methods offer superior accuracy and clinical reliability for vancomycin AUC estimation compared to trough-only and analytic approaches. These results support the adoption of Bayesian peak-trough strategies as the preferred approach for therapeutic drug monitoring in clinical practice.
+
+
+Limitations
+This study was based on Monte Carlo simulations utilizing the Goti two-compartment model, which, although developed from a large patient cohort, may not fully capture the variability encountered in real-world clinical practice. The simulations relied on steady state levels and fixed patient parameters (creatinine clearance and weight), potentially limiting the generalizability of the findings to patients with differing renal function, body weight, or clinical conditions. Additionally, the Goti model was constructed from routine clinical monitoring rather than rich data sampling, which may affect the precision of pharmacokinetic estimates. Methodological differences from other studies further constrain direct comparisons.
+To address concerns about renal function variability, we conducted an unpublished Monte Carlo analysis using the same simulation framework, stratifying 30,000 virtual patients into creatinine clearance groups of 30, 60, 90, and 120 mL/min. The comparative performance of AUC prediction methods within each group closely mirrored the findings observed in the 120 mL/min cohort, suggesting that our results are robust across a range of renal function scenarios. However, these findings remain unpublished and were based on simulated data with a fixed weight and creatinine clearances. Future research should validate these findings in diverse patient populations, incorporate real-world variability, and explore alternative pharmacokinetic models to ensure broader applicability and clinical relevance.
+Conclusion and Relevance
+This Monte Carlo simulation demonstrates that Bayesian peak-trough methods, whether one- or two-compartment, provide the most accurate and clinically reliable estimates of vancomycin AUC, outperforming trough-only and analytic approaches in terms of RMSE, confidence intervals, and clinical decision agreement. Notably, two-compartment Bayesian models do not confer additional benefit over one-compartment Bayesian models when only sparse sampling is available, suggesting that over-parameterization may limit their utility in routine clinical monitoring. These findings reinforce current consensus guidelines advocating for AUC-guided vancomycin dosing and support the integration of Bayesian peak-trough approaches into therapeutic drug monitoring protocols to optimize efficacy and minimize nephrotoxicity.
+While simulation-based, our results align with published clinical studies and highlight the need for further validation in diverse patient populations and real-world settings. By directly comparing true AUCs with estimated values across multiple dosing models, this study advances the understanding of vancomycin pharmacokinetic monitoring and provides evidence to refine therapeutic drug monitoring practices. Future research should explore the cost-effectiveness and implementation strategies for Bayesian dosing platforms to ensure broad accessibility and impact on patient outcomes.
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+References
+1. van Hal SJ, Paterson DL, Lodise TP. Systematic review and meta-analysis of vancomycin-induced nephrotoxicity associated with dosing schedules that maintain troughs between 15 and 20 milligrams per liter. Antimicrob Agents Chemother. 2013;57(2):734-744. doi:10.1128/AAC.01568-12
+2. Neely MN, Youn G, Jones B, et al. Are vancomycin trough concentrations adequate for optimal dosing?. Antimicrob Agents Chemother. 2014;58(1):309-316. doi:10.1128/AAC.01653-13
+3. Aljefri DM, Avedissian SN, Rhodes NJ, Postelnick MJ, Nguyen K, Scheetz MH. Vancomycin Area Under the Curve and Acute Kidney Injury: A Meta-analysis. Clin Infect Dis. 2019;69(11):1881-1887. doi:10.1093/cid/ciz051
+4. Lodise TP, Patel N, Lomaestro BM, Rodvold KA, Drusano GL. Relationship between initial vancomycin concentration-time profile and nephrotoxicity among hospitalized patients. Clin Infect Dis. 2009;49(4):507-514. doi:10.1086/600884
+5. van Hal SJ, Paterson DL, Lodise TP. Systematic review and meta-analysis of vancomycin-induced nephrotoxicity associated with dosing schedules that maintain troughs between 15 and 20 milligrams per liter. Antimicrob Agents Chemother. 2013;57(2):734-744. doi:10.1128/AAC.01568-12
+6. Moenster RP, Linneman TW, Finnegan PM, Hand S, Thomas Z, McDonald JR. Acute renal failure associated with vancomycin and β-lactams for the treatment of osteomyelitis in diabetics: piperacillin-tazobactam as compared with cefepime. Clin Microbiol Infect. 2014;20(6):O384-O389. doi:10.1111/1469-0691.12410
+7. Gomes DM, Smotherman C, Birch A, et al. Comparison of acute kidney injury during treatment with vancomycin in combination with piperacillin-tazobactam or cefepime. Pharmacotherapy. 2014;34(7):662-669. doi:10.1002/phar.1428
+8. Burgess LD, Drew RH. Comparison of the incidence of vancomycin-induced nephrotoxicity in hospitalized patients with and without concomitant piperacillin-tazobactam. Pharmacotherapy. 2014;34(7):670-676. doi:10.1002/phar.1442
+9. Navalkele B, Pogue JM, Karino S, et al. Risk of Acute Kidney Injury in Patients on Concomitant Vancomycin and Piperacillin-Tazobactam Compared to Those on Vancomycin and Cefepime. Clin Infect Dis. 2017;64(2):116-123. doi:10.1093/cid/ciw709
+10. Karino S, Kaye KS, Navalkele B, et al. Epidemiology of Acute Kidney Injury among Patients Receiving Concomitant Vancomycin and Piperacillin-Tazobactam: Opportunities for Antimicrobial Stewardship. Antimicrob Agents Chemother. 2016;60(6):3743-3750. Published 2016 May 23. doi:10.1128/AAC.03011-15
+11. Lodise TP, Lomaestro B, Graves J, Drusano GL. Larger vancomycin doses (at least four grams per day) are associated with an increased incidence of nephrotoxicity. Antimicrob Agents Chemother. 2008;52(4):1330-1336. doi:10.1128/AAC.01602-07
+12. Minejima E, Choi J, Beringer P, Lou M, Tse E, Wong-Beringer A. Applying new diagnostic criteria for acute kidney injury to facilitate early identification of nephrotoxicity in vancomycin-treated patients. Antimicrob Agents Chemother. 2011;55(7):3278-3283. doi:10.1128/AAC.00173-11
+13. Cano EL, Haque NZ, Welch VL, et al. Incidence of nephrotoxicity and association with vancomycin use in intensive care unit patients with pneumonia: retrospective analysis of the IMPACT-HAP Database. Clin Ther. 2012;34(1):149-157. doi:10.1016/j.clinthera.2011.12.013
+14. Vance-Bryan K, Rotschafer JC, Gilliland SS, Rodvold KA, Fitzgerald CM, Guay DR. A comparative assessment of vancomycin-associated nephrotoxicity in the young versus the elderly hospitalized patient. J Antimicrob Chemother. 1994;33(4):811-821. doi:10.1093/jac/33.4.811
+15. Jeffres MN, Isakow W, Doherty JA, Micek ST, Kollef MH. A retrospective analysis of possible renal toxicity associated with vancomycin in patients with health care-associated methicillin-resistant Staphylococcus aureus pneumonia. Clin Ther. 2007;29(6):1107-1115. doi:10.1016/j.clinthera.2007.06.014
+16. Fullmer A, McCue D, Feng C. Retrospective review of vancomycin-induced nephrotoxicity in patients with leukemia. J Oncol Pharm Pract. 2014;20(6):403-408. doi:10.1177/1078155213509847
+17. Rybak MJ, Le J, Lodise TP, et al. Therapeutic monitoring of vancomycin for serious methicillin-resistant Staphylococcus aureus infections: A revised consensus guideline and review by the American Society of Health-System Pharmacists, the Infectious Diseases Society of America, the Pediatric Infectious Diseases Society, and the Society of Infectious Diseases Pharmacists. Am J Health Syst Pharm. 2020;77(11):835-864. doi:10.1093/ajhp/zxaa036
+18. Goti V, Chaturvedula A, Fossler MJ, Mok S, Jacob JT. Hospitalized Patients With and Without Hemodialysis Have Markedly Different Vancomycin Pharmacokinetics: A Population Pharmacokinetic Model-Based Analysis. Ther Drug Monit. 2018;40(2):212-221. doi:10.1097/FTD.0000000000000490
+19. Broeker A, Nardecchia M, Klinker KP, et al. Towards precision dosing of vancomycin: a systematic evaluation of pharmacometric models for Bayesian forecasting. Clin Microbiol Infect. 2019;25(10):1286.e1-1286.e7. doi:10.1016/j.cmi.2019.02.029
+20. Olney KB, Wallace KL, Mynatt RP, et al. Comparison of Bayesian-derived and first-order analytic equations for calculation of vancomycin area under the curve. Pharmacotherapy. 2022;42(4):284-291. doi:10.1002/phar.2670
+21. Maung NH, Methaneethorn J, Wattanavijitkul T, Sriboonruang T. Comparison of area under the curve for vancomycin from one- and two-compartment models using sparse data. Eur J Hosp Pharm. 2022;29(e1):e57-e62. doi:10.1136/ejhpharm-2020-002637
+22. Pai MP, Neely M, Rodvold KA, Lodise TP. Innovative approaches to optimizing the delivery of vancomycin in individual patients. Adv Drug Deliv Rev. 2014;77:50-57. doi:10.1016/j.addr.2014.05.016
+23. Chanapiwat P, Paiboonvong T, Rattanaumpawan P, Montakantikul P. Comparison of the mathematical equation and trapezoidal approach for 24 h area under the plasma concentration-time curve calculation in patients who received intravenous vancomycin in an acute care setting. Pharmacol Res Perspect. 2023 Feb;11(1):e01046. doi: 10.1002/prp2.1046. PMID: 36588162; PMCID: PMC9806189
+24. Sawchuk RJ, Zaske DE. Pharmacokinetics of dosing regimens which utilize multiple intravenous infusions: gentamicin in burn patients. J Pharmacokinet Biopharm. 1976;4(2):183-195. doi:10.1007/BF01086153
+25. Bonate PL. A brief introduction to Monte Carlo simulation. Clin Pharmacokinet. 2001;40(1):15-22. doi:10.2165/00003088-200140010-00002
+26. Sheiner LB, Beal SL. Some suggestions for measuring predictive performance. J Pharmacokinet Biopharm. 1981;9(4):503-512. doi:10.1007/BF01060893
+

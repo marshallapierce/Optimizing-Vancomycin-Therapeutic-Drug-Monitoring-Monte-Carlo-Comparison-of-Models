@@ -224,7 +224,8 @@ def main():
 
         # McNemar test
         result_mc, table_mc = mcnemar_test(auc_true, auc_bayes, auc_fit_two)
-        print(f"McNemar test: statistic = {result_mc.statistic:.3f}, {format_p_value(result_mc.pvalue)}")
+        p_mc_corrected = min(result_mc.pvalue * 8, 1.0)
+        print(f"McNemar test: statistic = {result_mc.statistic:.3f}, {format_p_value(result_mc.pvalue)} (Bonferroni corrected: {format_p_value(p_mc_corrected)})")
         print(f"Contingency table:\n{table_mc}")
         correct_1_compt = int(table_mc[1, 0] + table_mc[1, 1])
         correct_2_compt = int(table_mc[0, 1] + table_mc[1, 1])
@@ -290,7 +291,8 @@ def main():
 
         # McNemar test
         result_mc_f, table_mc_f = mcnemar_test(auc_true, auc_fixed, auc_fit_two)
-        print(f"McNemar test: statistic = {result_mc_f.statistic:.3f}, {format_p_value(result_mc_f.pvalue)}")
+        p_mc_f_corrected = min(result_mc_f.pvalue * 8, 1.0)
+        print(f"McNemar test: statistic = {result_mc_f.statistic:.3f}, {format_p_value(result_mc_f.pvalue)} (Bonferroni corrected: {format_p_value(p_mc_f_corrected)})")
         print(f"Contingency table:\n{table_mc_f}")
         correct_fixed = int(table_mc_f[1, 0] + table_mc_f[1, 1])
         correct_2_compt_f = int(table_mc_f[0, 1] + table_mc_f[1, 1])

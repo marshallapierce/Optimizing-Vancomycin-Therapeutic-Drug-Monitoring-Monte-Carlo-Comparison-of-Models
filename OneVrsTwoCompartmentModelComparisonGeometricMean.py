@@ -16,9 +16,17 @@ py_file_name = os.path.splitext(os.path.basename(__file__))[0]
 # Population parameters for two-compartment limits are used in parameter randomization
 # adjusted Cl_total to reflect population mean from real data
 # adjust all doses (9 occurrences) for Avg AUC target 450
-pop_params = {'Vc': 58.4, 'Vp': 38.4, 'Cl_total': 4.5, 'Cl_dist': 6.5}#Cl_total 4.5
+weight = 100 # input a weight as desired in kg
+Crcl = 120 # input a creatinine clearance as desired in mL/min
+Vc_mean = 58.4 * (weight / 70)
+Cl_mean = 4.5 * (Crcl / 120) ** 0.8
+pop_params = {'Vc': Vc_mean, 'Vp': 38.4, 'Cl_total': Cl_mean, 'Cl_dist': 6.5}#Cl_total 4.5
 cvs = {'Vc': 0.3, 'Vp': 0.3, 'Cl_total': 0.3, 'Cl_dist': 0.4}# coefficient of variation for parameters
-limits = {'Vc': (23, 93), 'Vp': (15, 61), 'Cl_total': (1.8, 7.2), 'Cl_dist': (1.3, 11.7)}# +/- 2SD for random parameters'Cl_total':(1.8,7.2)
+lower_vc = Vc_mean - 2 * cvs['Vc'] * Vc_mean
+upper_vc = Vc_mean + 2 * cvs['Vc'] * Vc_mean
+lower_cl = Cl_mean - 2 * cvs['Cl_total'] * Cl_mean
+upper_cl = Cl_mean + 2 * cvs['Cl_total'] * Cl_mean
+limits = {'Vc': (lower_vc, upper_vc), 'Vp': (15, 61), 'Cl_total': (lower_cl, upper_cl), 'Cl_dist': (1.3, 11.7)}# +/- 2SD for random parameters'Cl_total':(1.8,7.2)
 
 N = 30000 # Number of simulated subjects
 # the times below are the acceptable times for levels to be entered in line 17.

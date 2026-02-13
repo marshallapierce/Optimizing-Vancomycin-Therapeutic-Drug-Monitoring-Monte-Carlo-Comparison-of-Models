@@ -11,16 +11,17 @@ output_dir = 'output'
 os.makedirs(output_dir, exist_ok=True)
 
 # Get the Python file name for output files
-py_file_name = os.path.splitext(os.path.basename(__file__))[0]
+py_file_name = os.path.splitext(os.path.basename(__file__))
 
 # Population parameters for two-compartment limits are used in parameter randomization
 # adjusted Cl_total to reflect population mean from real data
 # adjust all doses (9 occurrences) for Avg AUC target 450
-weight = 100 # input a weight as desired in kg
-Crcl = 120 # input a creatinine clearance as desired in mL/min
+weight = 110 # input a weight as desired in kg
+Crcl = 30 # input a creatinine clearance as desired in mL/min
 Vc_mean = 58.4 * (weight / 70)
 Cl_mean = 4.5 * (Crcl / 120) ** 0.8
 pop_params = {'Vc': Vc_mean, 'Vp': 38.4, 'Cl_total': Cl_mean, 'Cl_dist': 6.5}#Cl_total 4.5
+dose = 500 * Cl_mean * (12 / 24)
 cvs = {'Vc': 0.3, 'Vp': 0.3, 'Cl_total': 0.3, 'Cl_dist': 0.4}# coefficient of variation for parameters
 lower_vc = Vc_mean - 2 * cvs['Vc'] * Vc_mean
 upper_vc = Vc_mean + 2 * cvs['Vc'] * Vc_mean
@@ -85,8 +86,8 @@ def calculate_cp_2comp(Vc, Vp, Cl_total, Cl_dist, times):
     disc = np.sqrt(sum_k**2 - 4 * K21 * K10)
     alpha = 0.5 * (sum_k + disc)
     beta = 0.5 * (sum_k - disc)
-    A = 1125 * (K21 - alpha) * (1 - np.exp(-alpha * 2)) / (2 * Vc * alpha * (beta - alpha) * (1 - np.exp(-alpha * 12)))
-    B = 1125 * (beta - K21) * (1 - np.exp(-beta * 2)) / (2 * Vc * beta * (beta - alpha) * (1 - np.exp(-beta * 12)))
+    A = dose * (K21 - alpha) * (1 - np.exp(-alpha * 2)) / (2 * Vc * alpha * (beta - alpha) * (1 - np.exp(-alpha * 12)))
+    B = dose * (beta - K21) * (1 - np.exp(-beta * 2)) / (2 * Vc * beta * (beta - alpha) * (1 - np.exp(-beta * 12)))
     Cp = A * np.exp(-alpha * times) + B * np.exp(-beta * times)
     return Cp
 
@@ -104,7 +105,7 @@ for i in range(N):
 #         writer.writerow([i+1] + list(true_levels[i]))
 
 # Calculate AUC_true (step 5)
-AUC_true = 1125 * (24 / 12) / params['Cl_total'] # Calculates AUC based on true Cl_total randomized values
+AUC_true = dose * (24 / 12) / params['Cl_total'] # Calculates AUC based on true Cl_total randomized values
 
 # Save step 5 to CSV
 # with open('step5_auc_true.csv', 'w', newline='') as csvfile:
@@ -137,9 +138,9 @@ for i in range(N):
     idx_2h = np.where(times_true == 2)[0][0]
     idx_10h = np.where(times_true == 10)[0][0]
     Kcalc = np.log(randomized_levels[i, idx_2h] / randomized_levels[i, idx_10h]) / 8
-    Vdcalc[i] = 1125 * (1 - np.exp(-Kcalc * 2)) * np.exp(-Kcalc * 2) / (randomized_levels[i, idx_2h] * Kcalc * 2 * (1 - np.exp(-Kcalc * 12)))
+    Vdcalc[i] = dose * (1 - np.exp(-Kcalc * 2)) * np.exp(-Kcalc * 2) / (randomized_levels[i, idx_2h] * Kcalc * 2 * (1 - np.exp(-Kcalc * 12)))
     Clcalc[i] = Kcalc * Vdcalc[i]
-    AUCcalc[i] = 1125 * (24 / 12) / Clcalc[i]
+    AUCcalc[i] = dose * (24 / 12) / Clcalc[i]
 
 Vdpop_mean = np.mean(Vdcalc[Vdcalc > 0]) #values with only Vdcalc > 0 as negative values are invalid
 Clpop = np.mean(Clcalc[Vdcalc > 0])
@@ -170,7 +171,7 @@ start_Cl = np.clip(start_Cl, Cl_limits[0], Cl_limits[1])
 # Function for one comp Cp (fixed Vd)
 def calculate_cp_1comp_fixedVd(Cl, times, Vd=Vdpop):
     K = Cl / Vd
-    Cp = 1125 * (1 - np.exp(-K * 2)) * np.exp(-K * times) / (Cl * 2 * (1 - np.exp(-K * 12)))
+    Cp = dose * (1 - np.exp(-K * 2)) * np.exp(-K * times) / (Cl * 2 * (1 - np.exp(-K * 12)))
     return Cp
 
 # Fit for fixed Vd (step 10), This is fitting all entered times entered just like the bayesian model
@@ -193,7 +194,7 @@ for i in range(N):
         fitted_levels_fixedVd[i] = np.full(len(times_fit), np.nan)
         sse_fixedVd[i] = np.nan
 
-AUC_fit_fixedVd = 1125 * (24 / 12) / fitted_Cl_fixedVd
+AUC_fit_fixedVd = dose * (24 / 12) / fitted_Cl_fixedVd
 
 # Save step 10 to CSV
 # with open('step10_fit_fixedVd.csv', 'w', newline='') as csvfile:
@@ -206,7 +207,7 @@ AUC_fit_fixedVd = 1125 * (24 / 12) / fitted_Cl_fixedVd
 # Function for one comp Cp (Bayesian)
 def calculate_cp_1comp(Cl, Vd, times):
     K = Cl / Vd
-    Cp = 1125 * (1 - np.exp(-K * 2)) * np.exp(-K * times) / (Cl * 2 * (1 - np.exp(-K * 12)))
+    Cp = dose * (1 - np.exp(-K * 2)) * np.exp(-K * times) / (Cl * 2 * (1 - np.exp(-K * 12)))
     return Cp
 
 # Residuals for Bayesian fit
@@ -238,7 +239,7 @@ for i in range(N):
         fitted_levels_bayes[i] = np.full(len(times_fit), np.nan)
         sse_bayes[i] = np.nan
 
-AUC_fit_bayes = 1125 * (24 / 12) / fitted_Cl_bayes
+AUC_fit_bayes = dose * (24 / 12) / fitted_Cl_bayes
 
 # Save all data to one CSV
 with open(f'{output_dir}/monte_carlo_all_data_onevrstwocompartment_geometric_mean{file_suffix}.csv', 'w', newline='') as csvfile:

@@ -6,8 +6,8 @@ np.random.seed(42)  # For repeatable random values
 
 # Population parameters for two-compartment limits are used in parameter randomization
 # adjusted Cl_total to reflect population mean from real data
-weight = 70
-Crcl = 120
+weight = 50 # input("Enter weight in kg (default 70 kg): ")
+Crcl = 90 # input("Enter creatinine clearance in mL/min (default 120 mL/min): ")
 Vc_mean = 58.4 * (weight / 70)
 Cl_mean = 4.5 * (Crcl / 120) ** 0.8
 pop_params = {'Vc': Vc_mean, 'Vp': 38.4, 'Cl_total': Cl_mean, 'Cl_dist': 6.5}#Cl_total 4.5

@@ -219,27 +219,57 @@ def residuals_1comp(p, times, levels):
     res_cl = (Cl - Clpop) / (0.3 * Clpop)
     return np.concatenate([res_levels, [res_vd, res_cl]])
 
-# Fit Bayesian (step 14)
-fitted_Vd_bayes = np.zeros(N)
-fitted_Cl_bayes = np.zeros(N)
-fitted_levels_bayes = np.zeros((N, len(times_fit)))
-sse_bayes = np.zeros(N)
-for i in range(N):
-    try:
-        x0 = [start_Vd[i], start_Cl[i]]
-        bounds = ([Vdpop - Vdpop * 0.3 * 3, Clpop - Clpop * 0.3 * 3], [Vdpop + Vdpop * 0.3 * 3, Clpop + Clpop * 0.3 * 3])
-        res = optimize.least_squares(residuals_1comp, x0, bounds=bounds, args=(selected_times, selected_levels[i]))
-        fitted_Vd_bayes[i] = res.x[0]
-        fitted_Cl_bayes[i] = res.x[1]
-        fitted_levels_bayes[i] = calculate_cp_1comp(fitted_Cl_bayes[i], fitted_Vd_bayes[i], times_fit)
-        sse_bayes[i] = 2 * res.cost
-    except:
-        fitted_Vd_bayes[i] = np.nan
-        fitted_Cl_bayes[i] = np.nan
-        fitted_levels_bayes[i] = np.full(len(times_fit), np.nan)
-        sse_bayes[i] = np.nan
+# Fit Bayesian (step 14) for multiple scenarios
+scenarios = ['full', 'last']
+time_subsets = [times_fit, times_fit[-1:] if len(times_fit) > 0 else []]
+bayes_results = {}
+for scenario, subset in zip(scenarios, time_subsets):
+    if len(subset) == 0:
+        continue
+    mask = np.isin(times_true, subset)
+    selected_levels_sub = randomized_levels[:, mask]
+    selected_times_sub = times_true[mask]
+    fitted_Vd = np.zeros(N)
+    fitted_Cl = np.zeros(N)
+    fitted_levels = np.zeros((N, len(subset)))
+    sse = np.zeros(N)
+    for i in range(N):
+        try:
+            x0 = [start_Vd[i], start_Cl[i]]
+            bounds = ([Vdpop - Vdpop * 0.3 * 3, Clpop - Clpop * 0.3 * 3], [Vdpop + Vdpop * 0.3 * 3, Clpop + Clpop * 0.3 * 3])
+            res = optimize.least_squares(residuals_1comp, x0, bounds=bounds, args=(selected_times_sub, selected_levels_sub[i]))
+            fitted_Vd[i] = res.x[0]
+            fitted_Cl[i] = res.x[1]
+            fitted_levels[i] = calculate_cp_1comp(fitted_Cl[i], fitted_Vd[i], subset)
+            sse[i] = 2 * res.cost
+        except:
+            fitted_Vd[i] = np.nan
+            fitted_Cl[i] = np.nan
+            fitted_levels[i] = np.full(len(subset), np.nan)
+            sse[i] = np.nan
+    AUC_fit = dose * (24 / 12) / fitted_Cl
+    bayes_results[scenario] = {
+        'Vd': fitted_Vd,
+        'Cl': fitted_Cl,
+        'levels': fitted_levels,
+        'AUC': AUC_fit,
+        'SSE': sse,
+        'times': subset
+    }
 
-AUC_fit_bayes = dose * (24 / 12) / fitted_Cl_bayes
+# For backward compatibility, set the original variables to 'full' if exists
+if 'full' in bayes_results:
+    fitted_Vd_bayes = bayes_results['full']['Vd']
+    fitted_Cl_bayes = bayes_results['full']['Cl']
+    fitted_levels_bayes = bayes_results['full']['levels']
+    sse_bayes = bayes_results['full']['SSE']
+    AUC_fit_bayes = bayes_results['full']['AUC']
+else:
+    fitted_Vd_bayes = np.full(N, np.nan)
+    fitted_Cl_bayes = np.full(N, np.nan)
+    fitted_levels_bayes = np.full((N, len(times_fit)), np.nan)
+    sse_bayes = np.full(N, np.nan)
+    AUC_fit_bayes = np.full(N, np.nan)
 
 # Save all data to one CSV
 with open(f'{output_dir}/monte_carlo_all_data_onevrstwocompartment_geometric_mean{file_suffix}.csv', 'w', newline='') as csvfile:
@@ -251,18 +281,17 @@ with open(f'{output_dir}/monte_carlo_all_data_onevrstwocompartment_geometric_mea
               [f'Cp_{t}_rand' for t in times_true] + 
               ['Vdcalc', 'Clcalc', 'AUCcalc'] + 
               [f'Cp_{t}_fit_fixed' for t in times_fit] + 
-              ['Cl_fit_fixed', 'AUC_fit_fixed', 'SSE_fixed'] + 
-              [f'Cp_{t}_fit_bayes' for t in times_fit] + 
-              ['Vd_fit_bayes', 'Cl_fit_bayes', 'AUC_fit_bayes', 'SSE_bayes'] +
-              ['Cl_diff_calc', 'Cl_diff_calc_sq', 'Cl_diff_fixed', 'Cl_diff_fixed_sq', 'Cl_diff_bayes', 'Cl_diff_bayes_sq'])
+              ['Cl_fit_fixed', 'AUC_fit_fixed', 'SSE_fixed'])
+    for scenario in scenarios:
+        if scenario in bayes_results:
+            subset = bayes_results[scenario]['times']
+            header += [f'Cp_{t}_fit_bayes_{scenario}' for t in subset] + [f'Vd_fit_bayes_{scenario}', f'Cl_fit_bayes_{scenario}', f'AUC_fit_bayes_{scenario}', f'SSE_bayes_{scenario}']
+    header += ['Cl_diff_calc', 'Cl_diff_calc_sq', 'Cl_diff_fixed', 'Cl_diff_fixed_sq']
+    for scenario in scenarios:
+        if scenario in bayes_results:
+            header += [f'Cl_diff_bayes_{scenario}', f'Cl_diff_bayes_{scenario}_sq']
     writer.writerow(header)
     for i in range(N):
-        cl_diff_calc = params['Cl_total'][i] - Clcalc[i]
-        cl_diff_fixed = params['Cl_total'][i] - fitted_Cl_fixedVd[i]
-        cl_diff_bayes = params['Cl_total'][i] - fitted_Cl_bayes[i]
-        cl_diff_calc_sq = cl_diff_calc ** 2
-        cl_diff_fixed_sq = cl_diff_fixed ** 2
-        cl_diff_bayes_sq = cl_diff_bayes ** 2
         row = ([i+1] + 
                [params['Vc'][i], params['Vp'][i], params['Cl_total'][i], params['Cl_dist'][i]] + 
                list(true_levels[i]) + 
@@ -270,10 +299,18 @@ with open(f'{output_dir}/monte_carlo_all_data_onevrstwocompartment_geometric_mea
                list(randomized_levels[i]) + 
                [Vdcalc[i], Clcalc[i], AUCcalc[i]] + 
                list(fitted_levels_fixedVd[i]) + 
-               [fitted_Cl_fixedVd[i], AUC_fit_fixedVd[i], sse_fixedVd[i]] + 
-               list(fitted_levels_bayes[i]) + 
-               [fitted_Vd_bayes[i], fitted_Cl_bayes[i], AUC_fit_bayes[i], sse_bayes[i]] +
-               [cl_diff_calc, cl_diff_calc_sq, cl_diff_fixed, cl_diff_fixed_sq, cl_diff_bayes, cl_diff_bayes_sq])
+               [fitted_Cl_fixedVd[i], AUC_fit_fixedVd[i], sse_fixedVd[i]])
+        for scenario in scenarios:
+            if scenario in bayes_results:
+                res = bayes_results[scenario]
+                row += list(res['levels'][i]) + [res['Vd'][i], res['Cl'][i], res['AUC'][i], res['SSE'][i]]
+        cl_diff_calc = params['Cl_total'][i] - Clcalc[i]
+        cl_diff_fixed = params['Cl_total'][i] - fitted_Cl_fixedVd[i]
+        row += [cl_diff_calc, cl_diff_calc ** 2, cl_diff_fixed, cl_diff_fixed ** 2]
+        for scenario in scenarios:
+            if scenario in bayes_results:
+                cl_diff_bayes = params['Cl_total'][i] - bayes_results[scenario]['Cl'][i]
+                row += [cl_diff_bayes, cl_diff_bayes ** 2]
         writer.writerow(row)
 
 print(f"Monte Carlo data saved to {output_dir}/monte_carlo_all_data_onevrstwocompartment_geometric_mean{file_suffix}.csv")
@@ -289,11 +326,20 @@ hist_nb_filtered = np.histogram2d(AUC_true[Vdcalc > 0], AUCcalc[Vdcalc > 0], bin
 hist_fixed = np.histogram2d(AUC_true, AUC_fit_fixedVd, bins=[bins, bins])[0]
 
 # Bayesian
-hist_bayes = np.histogram2d(AUC_true, AUC_fit_bayes, bins=[bins, bins])[0]
+hist_bayes_full = np.histogram2d(AUC_true, bayes_results.get('full', {'AUC': np.full(N, np.nan)})['AUC'], bins=[bins, bins])[0] if 'full' in bayes_results else np.zeros((3,3))
+hist_bayes_last = np.histogram2d(AUC_true, bayes_results.get('last', {'AUC': np.full(N, np.nan)})['AUC'], bins=[bins, bins])[0] if 'last' in bayes_results else np.zeros((3,3))
 
-models = ['Non Bayesian Peak Trough', 'Fixed Vd', 'Bayesian']
-hists = [hist_nb_filtered, hist_fixed, hist_bayes]
-auc_fits = [AUCcalc, AUC_fit_fixedVd, AUC_fit_bayes]
+models = ['Non Bayesian Peak Trough', 'Fixed Vd']
+hists = [hist_nb_filtered, hist_fixed]
+auc_fits = [AUCcalc, AUC_fit_fixedVd]
+if 'full' in bayes_results:
+    models.append('Bayesian_full')
+    hists.append(hist_bayes_full)
+    auc_fits.append(bayes_results['full']['AUC'])
+if 'last' in bayes_results:
+    models.append('Bayesian_last')
+    hists.append(hist_bayes_last)
+    auc_fits.append(bayes_results['last']['AUC'])
 
 # Save grids to CSV
 with open(f'{output_dir}/grid_onevrstwocompart_Geometric_Mean{file_suffix}.csv', 'w', newline='') as csvfile:
@@ -345,15 +391,27 @@ with open(f'{output_dir}/auc_data_one_compartment{file_suffix}.csv', 'w', newlin
 with open(f'{output_dir}/auc_cl_data_one_compartment{file_suffix}.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(['Cl_true', 'Cl_fit', 'Model'])
-    cl_fits = [Clcalc, fitted_Cl_fixedVd, fitted_Cl_bayes]
+    cl_fits = [Clcalc, fitted_Cl_fixedVd]
+    if 'full' in bayes_results:
+        cl_fits.append(bayes_results['full']['Cl'])
+    if 'last' in bayes_results:
+        cl_fits.append(bayes_results['last']['Cl'])
     for cl_fit, model in zip(cl_fits, models):
         for true, fit in zip(params['Cl_total'], cl_fit):
             writer.writerow([true, fit, model])
 
 # Bland-Altman analysis
-model_names = ['Non Bayesian Peak Trough', 'Fixed Vd', 'Bayesian']
-auc_fits = [AUCcalc, AUC_fit_fixedVd, AUC_fit_bayes]
-cl_fits = [Clcalc, fitted_Cl_fixedVd, fitted_Cl_bayes]
+model_names = ['Non Bayesian Peak Trough', 'Fixed Vd']
+auc_fits_stats = [AUCcalc, AUC_fit_fixedVd]
+cl_fits_stats = [Clcalc, fitted_Cl_fixedVd]
+if 'full' in bayes_results:
+    model_names.append('Bayesian_full')
+    auc_fits_stats.append(bayes_results['full']['AUC'])
+    cl_fits_stats.append(bayes_results['full']['Cl'])
+if 'last' in bayes_results:
+    model_names.append('Bayesian_last')
+    auc_fits_stats.append(bayes_results['last']['AUC'])
+    cl_fits_stats.append(bayes_results['last']['Cl'])
 
 auc_biases = []
 auc_rmses = []

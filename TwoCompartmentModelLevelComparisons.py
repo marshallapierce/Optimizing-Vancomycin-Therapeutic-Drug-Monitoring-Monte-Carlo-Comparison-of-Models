@@ -4,7 +4,36 @@ import matplotlib.pyplot as plt  # optional for plotting
 import csv
 import os
 
+# Time points for true and fitting concentrations post dose 
+times_true = np.array([0, 1, 2, 3, 4, 8, 9, 10])# User entered, levels in grids.cvs change line 144 to match
+
 file_suffix = input("Enter a suffix for the CSV files (e.g., 'test1'): ")
+
+# User input for fitting times
+try:
+    times_input = input("Enter times separated by space or comma (e.g., 2 10): ").replace(',', ' ').split()
+    times_fit_list = [int(t) for t in times_input]
+    # Ensure times are subset of times_true
+    times_fit_list = [t for t in times_fit_list if t in times_true]
+    if not times_fit_list:
+        times_fit_list = [2, 10]  # default
+except:
+    times_fit_list = [2, 10]  # default
+
+# Compute indices for level_scenarios
+indices_fit = [np.where(times_true == t)[0][0] for t in times_fit_list]
+trough_index = [indices_fit[-1]]
+
+# Set level_scenarios dynamically
+label_full = ','.join(map(str, times_fit_list))
+label_trough = str(times_fit_list[-1])
+level_scenarios = [
+    (indices_fit, label_full),
+    (trough_index, label_trough)
+]  # Only the entered times and trough
+
+# List to collect grid data for combined output
+combined_grids_data = []
 
 # Create output directory
 output_dir = 'output'
@@ -13,10 +42,21 @@ os.makedirs(output_dir, exist_ok=True)
 np.random.seed(42)  # For repeatable random values
 
 # Population parameters for two-compartment model
-pop_params = {'Vc': 58.4, 'Vp': 38.4, 'Cl_total': 4.5, 'Cl_dist': 6.5}#mean values
+weight = 110 # input a weight as desired in kg
+Crcl = 30 # input a creatinine clearance as desired in mL/min
+Vc_mean = 58.4 * (weight / 70)
+Cl_mean = 4.5 * (Crcl / 120) ** 0.8
+
+pop_params = {'Vc': Vc_mean, 'Vp': 38.4, 'Cl_total': Cl_mean, 'Cl_dist': 6.5}#mean values
 cvs = {'Vc': 0.3, 'Vp': 0.3, 'Cl_total': 0.3, 'Cl_dist': 0.4}#CVs for parameters
-limits = {'Vc': (23, 93), 'Vp': (15, 61), 'Cl_total': (1.8, 7.2), 'Cl_dist': (1.3, 11.7)}# +/-2 SD Limits for parameter generation
-fit_bounds = {'Vc': (5.8, 110), 'Vp': (3.8, 72), 'Cl_total': (0.45, 8.55), 'Cl_dist': (1.3, 11.7)}# +/-3 SD Bounds for parameter fitting
+dose = 500 * Cl_mean * (12 / 24) # Adjust dose to keep AUC consistent at 12-hour dosing interval, 500 is the dose for the original parameters
+
+lower_vc = Vc_mean - 2 * cvs['Vc'] * Vc_mean
+upper_vc = Vc_mean + 2 * cvs['Vc'] * Vc_mean
+lower_cl = Cl_mean - 2 * cvs['Cl_total'] * Cl_mean
+upper_cl = Cl_mean + 2 * cvs['Cl_total'] * Cl_mean
+limits = {'Vc': (lower_vc, upper_vc), 'Vp': (15, 61), 'Cl_total': (lower_cl, upper_cl), 'Cl_dist': (1.3, 11.7)}# +/-2 SD Limits for parameter generation
+fit_bounds = {'Vc': (Vc_mean - 3 * cvs['Vc'] * Vc_mean, Vc_mean + 3 * cvs['Vc'] * Vc_mean), 'Vp': (3.8, 72), 'Cl_total': (Cl_mean - 3 * cvs['Cl_total'] * Cl_mean, Cl_mean + 3 * cvs['Cl_total'] * Cl_mean), 'Cl_dist': (1.3, 11.7)}# +/-3 SD Bounds for parameter fitting
 
 # original code
 # times_true = np.array([0, 1, 2, 3, 4, 8, 9, 10])# User entered, levels in grids.cvs
@@ -35,7 +75,7 @@ fit_bounds = {'Vc': (5.8, 110), 'Vp': (3.8, 72), 'Cl_total': (0.45, 8.55), 'Cl_d
 
 N = 30000 # Number of simulated groups
 # Time points for true and fitting concentrations post dose 
-times_true = np.array([0, 1, 2, 3, 4, 8, 9, 10])# User entered, levels in grids.cvs change line 144 to match
+# times_true defined earlier
 # Original level_scenarios (commented out for reference):
 # level_scenarios = [                             #this will need to match the level scenarios in grids.csv
 #     ([0], "0"),
@@ -85,8 +125,8 @@ def calculate_cp(Vc, Vp, Cl_total, Cl_dist, times):
     #1012.6 is dose administered need to change dose to keep AUC consistent
     #12 is the dosing interval in hours
     #2 is the infusion time in hours
-    A = 1125 * (K21 - alpha) * (1 - np.exp(-alpha * 2)) / (2 * Vc * alpha * (beta - alpha) * (1 - np.exp(-alpha * 12)))
-    B = 1125 * (beta - K21) * (1 - np.exp(-beta * 2)) / (2 * Vc * beta * (beta - alpha) * (1 - np.exp(-beta * 12)))
+    A = dose * (K21 - alpha) * (1 - np.exp(-alpha * 2)) / (2 * Vc * alpha * (beta - alpha) * (1 - np.exp(-alpha * 12)))
+    B = dose * (beta - K21) * (1 - np.exp(-beta * 2)) / (2 * Vc * beta * (beta - alpha) * (1 - np.exp(-beta * 12)))
     Cp = A * np.exp(-alpha * times) + B * np.exp(-beta * times)
     return Cp
 
@@ -96,7 +136,7 @@ for i in range(N):
     true_levels[i] = calculate_cp(params['Vc'][i], params['Vp'][i], params['Cl_total'][i], params['Cl_dist'][i], times_true)
 
 # Calculate AUC_true Adjust dose to keep AUC consistent
-AUC_true = 1125 * (24 / 12) / params['Cl_total']
+AUC_true = dose * (24 / 12) / params['Cl_total']
 
 # Add noise to get randomized levels
 randomized_levels = true_levels * (1 + stats.norm.ppf(np.random.random((N, len(times_true))), 0, 0.1))
@@ -147,7 +187,7 @@ for idx, (times_fit_list, label) in enumerate(level_scenarios):
     rmse = np.sqrt(np.mean(cl_diff_sq))
     
     # Calculate AUC_fit and AUC_diff
-    AUC_fit = 1125 * (24 / 12) / fitted_params['Cl_total']
+    AUC_fit = dose * (24 / 12) / fitted_params['Cl_total']
     fitted_AUC[idx] = AUC_fit
     auc_diff = AUC_fit - AUC_true
     auc_diff_sq = auc_diff ** 2
@@ -179,32 +219,32 @@ for idx, (times_fit_list, label) in enumerate(level_scenarios):
     
     # For the full early levels scenario, save the detailed CSV and grids, Input time determines what prints in grids_two_vrs_two csv file
     #no spaces between commas in label
-    if label == "2,10": #"10": #"2,10": #"0,1,2,3,4,8,9,10": #"2,4,8,10":Cl # needs to match the scenario for the times wanted in grid (trough, Pk/tr, or level times 2, 4, 8, 10 ect)
+    if label in [label_full, label_trough]: #"10": #"2,10": #"0,1,2,3,4,8,9,10": #"2,4,8,10":Cl # needs to match the scenario for the times wanted in grid (trough, Pk/tr, or level times 2, 4, 8, 10 ect)
         # Calculate fitted levels
         fitted_levels = np.zeros((N, len(times_fit)))
         for i in range(N):
             fitted_levels[i] = calculate_cp(fitted_params['Vc'][i], fitted_params['Vp'][i], fitted_params['Cl_total'][i], fitted_params['Cl_dist'][i], times_fit)
         
         # Calculate AUC_fit Adjust dose to keep AUC consistent
-        AUC_fit = 1125 * (24 / 12) / fitted_params['Cl_total']
+        AUC_fit = dose * (24 / 12) / fitted_params['Cl_total']
         
         # Save AUC data for combined plot
-        with open(f'{output_dir}/auc_data_two_compartment{file_suffix}.csv', 'w', newline='') as csvfile:
+        with open(f'{output_dir}/auc_data_two_compartment_{label.replace(",", "_")}{file_suffix}.csv', 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(['Method', 'AUC_true', 'AUC_pred'])
             for i in range(N):
                 writer.writerow(['Two-Compartment', AUC_true[i], AUC_fit[i]])
         
-        print(f"AUC data saved to auc_data_two_compartment{file_suffix}.csv")
+        print(f"AUC data saved to auc_data_two_compartment_{label.replace(',', '_')}{file_suffix}.csv")
         
         # Save AUC and Cl data for combined plot
-        with open(f'{output_dir}/auc_cl_data_two_compartment{file_suffix}.csv', 'w', newline='') as csvfile:
+        with open(f'{output_dir}/auc_cl_data_two_compartment_{label.replace(",", "_")}{file_suffix}.csv', 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(['Method', 'AUC_true', 'AUC_pred', 'Cl_true', 'Cl_pred'])
             for i in range(N):
                 writer.writerow(['Two-Compartment Bayesian', AUC_true[i], AUC_fit[i], params['Cl_total'][i], fitted_params['Cl_total'][i]])
         
-        print(f"AUC and Cl data saved to auc_cl_data_two_compartment{file_suffix}.csv")
+        print(f"AUC and Cl data saved to auc_cl_data_two_compartment_{label.replace(',', '_')}{file_suffix}.csv")
         percent_error = ((AUC_fit - AUC_true) / AUC_true) * 100
         
         # Create the comparison grid
@@ -217,6 +257,13 @@ for idx, (times_fit_list, label) in enumerate(level_scenarios):
         bin_indices_fit = np.digitize(AUC_fit, bins) - 1
         correct_count = np.sum(bin_indices_true == bin_indices_fit)
         fraction_correct = correct_count / N
+        
+        # Calculate percentages
+        percs = np.zeros_like(hist, dtype=float)
+        for i in range(len(bins)-1):
+            total = np.sum(hist[i])
+            if total > 0:
+                percs[i] = hist[i] / total * 100
         
         print("Actual AUC Ranges\tNumber Fit in AUC Ranges Below")
         print("Number In AUC ranges\tTotal\t< 400\t400 through 600\t> 600")
@@ -231,17 +278,17 @@ for idx, (times_fit_list, label) in enumerate(level_scenarios):
         print("Number In AUC ranges\tTotal\t< 400\t400 through 600\t> 600")
         for i in range(len(bins)-1):
             total = np.sum(hist[i])
-            if total > 0:
-                percs = hist[i] / total * 100
-            else:
-                percs = np.zeros_like(hist[i])
             row_label = custom_labels[i]
-            print(f"{row_label}\t{total:.0f}\t{'\t'.join(map(lambda x: f'{x:.1f}%', percs))}")
+            print(f"{row_label}\t{total:.0f}\t{'\t'.join(map(lambda x: f'{x:.1f}%', percs[i]))}")
         
         print(f"\nFraction of Correct Predictions: {fraction_correct:.4f}")
         
+        # Collect data for combined grids
+        scenario_name = "full" if label == label_full else "trough"
+        combined_grids_data.append((scenario_name, hist, percs, fraction_correct, bins, custom_labels))
+        
         # Write results to CSV
-        with open(f'{output_dir}/monte_carlo_results_two_vrs_two{file_suffix}.csv', 'w', newline='') as csvfile:
+        with open(f'{output_dir}/monte_carlo_results_two_vrs_two_{label.replace(",", "_")}{file_suffix}.csv', 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
             header = ['Group', 'Vc_true', 'Vp_true', 'Cl_total_true', 'Cl_dist_true'] + [f'Cp_{t}_true' for t in times_true] + ['AUC_true'] + [f'Cp_{t}_rand' for t in times_true] + ['Vc_start', 'Vp_start', 'Cl_total_start', 'Cl_dist_start'] + [f'Cp_{t}_fit' for t in times_fit] + ['Vc_fit', 'Vp_fit', 'Cl_total_fit', 'Cl_dist_fit', 'AUC_fit', 'SSE', 'Cl_diff', 'Cl_diff_sq', 'Percent_Error']
             writer.writerow(header)
@@ -249,34 +296,7 @@ for idx, (times_fit_list, label) in enumerate(level_scenarios):
                 row = [i+1, params['Vc'][i], params['Vp'][i], params['Cl_total'][i], params['Cl_dist'][i]] + list(true_levels[i]) + [AUC_true[i]] + list(randomized_levels[i]) + [start_params['Vc'][i], start_params['Vp'][i], start_params['Cl_total'][i], start_params['Cl_dist'][i]] + list(fitted_levels[i]) + [fitted_params['Vc'][i], fitted_params['Vp'][i], fitted_params['Cl_total'][i], fitted_params['Cl_dist'][i], AUC_fit[i], fitted_sse[i], cl_diff[i], cl_diff_sq[i], percent_error[i]]
                 writer.writerow(row)
         
-        print(f"Results saved to monte_carlo_results_two_vrs_two{file_suffix}.csv")
-        
-        # Write grids to separate CSV
-        with open(f'{output_dir}/grids_two_vrs_two{file_suffix}.csv', 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(['Comparison Grid'])
-            writer.writerow(['Actual AUC Ranges', 'Number Fit in AUC Ranges Below'])
-            writer.writerow(['Number In AUC ranges', 'Total', '< 400', '400 through 600', '> 600'])
-            for i in range(len(bins)-1):
-                total = int(np.sum(hist[i]))
-                row_label = custom_labels[i]
-                writer.writerow([row_label, total] + list(hist[i].astype(int)))
-            
-            writer.writerow([])
-            writer.writerow(['Percentage Grid'])
-            writer.writerow(['Actual AUC Ranges', 'Percentage Fit in AUC Ranges Below'])
-            writer.writerow(['Number In AUC ranges', 'Total', '< 400', '400 through 600', '> 600'])
-            for i in range(len(bins)-1):
-                total = float(np.sum(hist[i]))
-                if total > 0:
-                    percs = hist[i] / total * 100
-                else:
-                    percs = np.zeros_like(hist[i])
-                row_label = custom_labels[i]
-                writer.writerow([row_label, f"{total:.0f}"] + [f"{x:.1f}%" for x in percs])
-        
-            writer.writerow([])
-            writer.writerow(['Fraction of Correct Predictions', '', '', '', '', f"{fraction_correct:.4f}"])
+        print(f"Results saved to monte_carlo_results_two_vrs_two_{label.replace(',', '_')}{file_suffix}.csv")
         
         # Calculate Pearson r
         r, _ = stats.pearsonr(AUC_true, AUC_fit)
@@ -289,11 +309,36 @@ for idx, (times_fit_list, label) in enumerate(level_scenarios):
         plt.ylabel('Predicted AUC - Actual AUC')
         plt.title('Two Compt. Bayesian Model Residual vs Actual AUC')
         plt.text(0.05, 0.95, f'RMSE: {auc_rmse:.2f}\nPearson r: {r:.2f}', transform=plt.gca().transAxes, fontsize=12, verticalalignment='top')
-        plt.savefig(f'2cAUC_residuals_{file_suffix}.pdf')
+        plt.savefig(f'2cAUC_residuals_{label.replace(",", "_")}{file_suffix}.pdf')
         plt.close()
         
-        print(f"Grids saved to grids_two_vrs_two{file_suffix}.csv")
+# Write combined grids to CSV
+with open(f'{output_dir}/grids_two_vrs_two{file_suffix}.csv', 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile)
+    for scenario_name, hist, percs, fraction_correct, bins, custom_labels in combined_grids_data:
+        writer.writerow([f'Grid for {scenario_name}'])
+        writer.writerow(['Actual AUC Ranges', 'Number Fit in AUC Ranges Below'])
+        writer.writerow(['Number In AUC ranges', 'Total', '< 400', '400 through 600', '> 600'])
+        for i in range(len(bins)-1):
+            total = int(np.sum(hist[i]))
+            row_label = custom_labels[i]
+            writer.writerow([row_label, total] + list(hist[i].astype(int)))
         
+        writer.writerow([])
+        writer.writerow(['Percentage Grid'])
+        writer.writerow(['Actual AUC Ranges', 'Percentage Fit in AUC Ranges Below'])
+        writer.writerow(['Number In AUC ranges', 'Total', '< 400', '400 through 600', '> 600'])
+        for i in range(len(bins)-1):
+            total = float(np.sum(hist[i]))
+            row_label = custom_labels[i]
+            writer.writerow([row_label, f"{total:.0f}"] + [f"{x:.1f}%" for x in percs[i]])
+        
+        writer.writerow([])
+        writer.writerow(['Fraction of Correct Predictions', '', '', '', '', f"{fraction_correct:.4f}"])
+        writer.writerow([])
+
+print(f"Combined grids saved to grids_two_vrs_two{file_suffix}.csv")
+
 # Save the Cl_diff grid to separate CSV
 with open(f'{output_dir}/cl_diff_grid_two_vrs_two{file_suffix}.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)

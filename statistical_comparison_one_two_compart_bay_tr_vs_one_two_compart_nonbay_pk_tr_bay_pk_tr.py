@@ -5,39 +5,69 @@ from statsmodels.stats.contingency_tables import mcnemar
 import sys
 import matplotlib.pyplot as plt
 
+def print_and_save(text, file):
+    print(text)
+    file.write(text + '\n')
+
 # Statistical comparisons for Bayesian trough vs Bayesian peak trough, Bayesian trough vs peak trough, etc.
 # Adapted from statistical_comparisons_one_compt_pk_tr_vs_two_compt_pk_tr.py
 
 # Function to load detailed Monte Carlo results
-def load_detailed_results(suffix):
-    filename = f'output/monte_carlo_all_data_onevrstwocompartment_geometric_mean{suffix}.csv'
+def load_detailed_results():
+    print("Loading one-compartment data...")
+    filename = f'merged_output/combined_monte_carlo_all_data_onevrstwocompartment_geometric_mean.csv'
     try:
         df = pd.read_csv(filename)
+        print(f"Loaded {len(df)} rows from {filename}")
         return df
     except FileNotFoundError:
         print(f"File {filename} not found.")
         return None
 
 # Function to load detailed Monte Carlo results for two-vs-two
-def load_detailed_results_two_vrs_two(suffix):
-    filename = f'output/monte_carlo_results_two_vrs_two{suffix}.csv'
+def load_detailed_results_two_vrs_two(time_config=None):
+    print("Loading two-compartment data...")
+    if time_config == 'trough':
+        filename = f'merged_output/combined_monte_carlo_results_two_vrs_two_trough.csv'
+    elif time_config == 'peaktrough':
+        filename = f'merged_output/combined_monte_carlo_results_two_vrs_two_peaktrough.csv'
+    else:
+        # Fallback to default file if time_config not specified
+        filename = f'merged_output/combined_monte_carlo_results_two_vrs_two.csv'
+
     try:
         df = pd.read_csv(filename)
+        print(f"Loaded {len(df)} rows from {filename}")
         return df
     except FileNotFoundError:
         print(f"File {filename} not found.")
         return None
 
 # Function to load method data
-def load_method_data(suffix, compartment, method):
+def load_method_data(compartment, method):
+    print(f"Loading method data for {compartment} compartment, {method} method...")
+
+    # Determine time configuration based on method
+    # bay_tr = Bayesian trough (uses trough data)
+    # bay_pk_tr, pk_tr = use peak+trough data
+    if method in ['bay_pk_tr', 'pk_tr']:
+        time_config = 'peaktrough'
+    elif method == 'bay_tr':
+        time_config = 'trough'
+    else:
+        time_config = None
+
     if compartment == 'one':
-        df = load_detailed_results(suffix)
+        df = load_detailed_results()
         if df is None:
             return None
         # Select columns based on method
-        if method in ['bay_tr', 'bay_pk_tr']:
-            auc_col = 'AUC_fit_bayes'
-            cl_col = 'Cl_fit_bayes'
+        if method == 'bay_tr':
+            auc_col = 'AUC_fit_bayes_last'
+            cl_col = 'Cl_fit_bayes_last'
+        elif method == 'bay_pk_tr':
+            auc_col = 'AUC_fit_bayes_full'
+            cl_col = 'Cl_fit_bayes_full'
         elif method == 'pk_tr':
             auc_col = 'AUCcalc'
             cl_col = 'Clcalc'
@@ -45,14 +75,14 @@ def load_method_data(suffix, compartment, method):
             return None
         # Rename for consistency
         df = df.rename(columns={auc_col: f'AUC_{method}', cl_col: f'Cl_{method}'})
-        return df[['Group', 'AUC_true', f'AUC_{method}', 'Cl_total_true', f'Cl_{method}']]
+        return df[['Group', 'Crcl', 'weight', 'AUC_true', f'AUC_{method}', 'Cl_total_true', f'Cl_{method}']]
     elif compartment == 'two':
-        df = load_detailed_results_two_vrs_two(suffix)
+        df = load_detailed_results_two_vrs_two(time_config)
         if df is None:
             return None
         # For two compartment, assume bayesian
-        df = df.rename(columns={'AUC_fit': f'AUC_{method}', 'Cl_total_fit': f'Cl_{method}', 'AUC_true_two': 'AUC_true', 'Cl_total_true_two': 'Cl_total_true'})
-        return df[['Group', 'AUC_true', f'AUC_{method}', 'Cl_total_true', f'Cl_{method}']]
+        df = df.rename(columns={'AUC_fit': f'AUC_{method}', 'Cl_total_fit': f'Cl_{method}'})
+        return df[['Group', 'Crcl', 'weight', 'AUC_true', f'AUC_{method}', 'Cl_total_true', f'Cl_{method}']]
     else:
         return None
 
@@ -69,6 +99,16 @@ def format_p_value(p):
 def bland_altman_plot(true_vals, pred_vals, title, filename):
     mean_vals = (true_vals + pred_vals) / 2
     diff_vals = pred_vals - true_vals
+
+    # Sample data if too large for plotting
+    max_points = 10000
+    if len(mean_vals) > max_points:
+        import numpy as np
+        indices = np.random.choice(len(mean_vals), size=max_points, replace=False)
+        mean_vals = mean_vals[indices]
+        diff_vals = diff_vals[indices]
+        title += f" (sampled {max_points} points from {len(true_vals)} total)"
+
     plt.figure(figsize=(8, 6))
     plt.scatter(mean_vals, diff_vals, alpha=0.5)
     plt.axhline(np.mean(diff_vals), color='red', linestyle='--', label='Mean difference')
@@ -161,56 +201,86 @@ def create_auc_comparison_csv(auc_true, auc_models, model_names, suffix):
             lines.append(f"% Predicted AUC <400 when True AUC 400-600,,,,,0.00%")
         lines.append("")
     # Write to file
-    filename = f'output/auc_comparison_grids_{suffix.replace(" ", "_")}.csv'
+    filename = f'merged_output/auc_comparison_grids_{suffix.replace(" ", "_")}_combined.csv'
     with open(filename, 'w') as f:
         for line in lines:
             f.write(line + '\n')
     print(f"Comparison grids saved to {filename}")
 
 # Main function
-def main():
-    # No need for suffix input, using fixed suffixes
+def main(comparison_index=None):
+    print("Starting statistical comparison analysis...")
 
     # Define the comparisons
     comparisons = [
         {
             'name': '1 compartment Bayesian trough vs 1 compartment Bayesian peak trough',
-            'comp1': {'compartment': 'one', 'suffix': 'CltotalfourpointfiveTR', 'method': 'bay_tr'},
-            'comp2': {'compartment': 'one', 'suffix': 'CltotalfourpointfivePKTR', 'method': 'bay_pk_tr'}
+            'comp1': {'compartment': 'one', 'method': 'bay_tr'},
+            'comp2': {'compartment': 'one', 'method': 'bay_pk_tr'}
         },
         {
             'name': '1 compartment Bayesian trough vs 1 compartment peak trough',
-            'comp1': {'compartment': 'one', 'suffix': 'CltotalfourpointfiveTR', 'method': 'bay_tr'},
-            'comp2': {'compartment': 'one', 'suffix': 'CltotalfourpointfivePKTR', 'method': 'pk_tr'}
+            'comp1': {'compartment': 'one', 'method': 'bay_tr'},
+            'comp2': {'compartment': 'one', 'method': 'pk_tr'}
         },
         {
             'name': '2 compartment Bayesian trough vs 1 compartment Bayesian peak trough',
-            'comp1': {'compartment': 'two', 'suffix': 'CltotalfourpointfiveTR', 'method': 'bay_tr'},
-            'comp2': {'compartment': 'one', 'suffix': 'CltotalfourpointfivePKTR', 'method': 'bay_pk_tr'}
+            'comp1': {'compartment': 'two', 'method': 'bay_tr'},
+            'comp2': {'compartment': 'one', 'method': 'bay_pk_tr'}
         },
         {
             'name': '2 compartment Bayesian trough vs 2 compartment Bayesian peak trough',
-            'comp1': {'compartment': 'two', 'suffix': 'CltotalfourpointfiveTR', 'method': 'bay_tr'},
-            'comp2': {'compartment': 'two', 'suffix': 'CltotalfourpointfivePKTR', 'method': 'bay_pk_tr'}
+            'comp1': {'compartment': 'two', 'method': 'bay_tr'},
+            'comp2': {'compartment': 'two', 'method': 'bay_pk_tr'}
         }
     ]
 
     bonferroni_factor = 8  # Since 8 comparisons
+    print(f"Will perform {len(comparisons)} comparisons with Bonferroni factor {bonferroni_factor}")
 
-    for comp in comparisons:
-        print(f"\n=== {comp['name']} ===")
+    # If comparison_index is specified, run only that comparison
+    if comparison_index is not None:
+        if comparison_index < 0 or comparison_index >= len(comparisons):
+            print(f"Invalid comparison index {comparison_index}. Must be 0-3.")
+            return
+        comparisons_to_run = [comparisons[comparison_index]]
+        print(f"Running only comparison {comparison_index}: {comparisons[comparison_index]['name']}")
+    else:
+        comparisons_to_run = comparisons
+
+    for i, comp in enumerate(comparisons_to_run):
+        actual_index = comparisons.index(comp) if comparison_index is None else comparison_index
+        print(f"\nStarting comparison {actual_index+1}: {comp['name']}")
+        
+        # Create unique filename for this comparison
+        safe_name = comp['name'].replace(' ', '_').replace('vs', 'vs').lower()
+        results_filename = f'merged_output/statistical_comparison_results_{safe_name}_combined.txt'
+        results_file = open(results_filename, 'w')
+        print(f"Results file opened: {results_filename}")
+        
+        print_and_save(f"\n=== {comp['name']} ===", results_file)
 
         # Load data for comp1
-        df1 = load_method_data(comp['comp1']['suffix'], comp['comp1']['compartment'], comp['comp1']['method'])
+        print(f"Loading data for {comp['comp1']['method']}...")
+        df1 = load_method_data(comp['comp1']['compartment'], comp['comp1']['method'])
         # Load data for comp2
-        df2 = load_method_data(comp['comp2']['suffix'], comp['comp2']['compartment'], comp['comp2']['method'])
+        print(f"Loading data for {comp['comp2']['method']}...")
+        df2 = load_method_data(comp['comp2']['compartment'], comp['comp2']['method'])
 
         if df1 is None or df2 is None:
-            print("Data not found for this comparison.")
+            print_and_save("Data not found for this comparison.", results_file)
             continue
 
-        # Merge on 'Group' assuming it exists
-        merged_df = pd.merge(df1, df2, on='Group', suffixes=('_1', '_2'))
+        print(f"Data loaded. df1: {len(df1)} rows, df2: {len(df2)} rows")
+        print(f"df1 Group range: {df1['Group'].min()} - {df1['Group'].max()}")
+        print(f"df2 Group range: {df2['Group'].min()} - {df2['Group'].max()}")
+        print("Merging dataframes...")
+        # Merge on the full key to avoid duplicates
+        merged_df = pd.merge(df1, df2, on=['Group', 'Crcl', 'weight'], how='inner', suffixes=('_1', '_2'))
+        print(f"Merged dataframe has {len(merged_df)} rows")
+        if len(merged_df) == 0:
+            print_and_save("ERROR: Merge resulted in 0 rows. Group columns may not match between datasets.", results_file)
+            continue
 
         # Apply filters
         if 'Vdcalc' in merged_df.columns:
@@ -223,8 +293,9 @@ def main():
             valid_two = pd.Series([True] * len(merged_df))
         valid = valid_one & valid_two
         df = merged_df[valid]
-        print(f"Merged and filtered data: {len(df)} simulations")
+        print_and_save(f"Merged and filtered data: {len(df)} simulations", results_file)
 
+        print("Starting statistical calculations...")
         # Assume AUC_true is the same, take from _1
         auc_true = df['AUC_true_1'].values
         auc1 = df[f'AUC_{comp["comp1"]["method"]}'].values
@@ -234,6 +305,7 @@ def main():
         cl1 = df[f'Cl_{comp["comp1"]["method"]}'].values
         cl2 = df[f'Cl_{comp["comp2"]["method"]}'].values
 
+        print("Performing statistical tests...")
         # Differences
         auc_diff1 = auc1 - auc_true
         auc_diff2 = auc2 - auc_true
@@ -243,23 +315,23 @@ def main():
         # Paired t-test for AUC diff
         t_auc, p_auc = stats.ttest_rel(auc_diff1, auc_diff2)
         p_auc_corrected = min(p_auc * bonferroni_factor, 1.0)
-        print(f"AUC Diff: {comp['comp1']['method']} mean = {np.mean(auc_diff1):.2f}, {comp['comp2']['method']} mean = {np.mean(auc_diff2):.2f}")
-        print(f"Paired t-test AUC: t = {t_auc:.3f}, {format_p_value(p_auc)} (Bonferroni corrected: {format_p_value(p_auc_corrected)})")
+        print_and_save(f"AUC Diff: {comp['comp1']['method']} mean = {np.mean(auc_diff1):.2f}, {comp['comp2']['method']} mean = {np.mean(auc_diff2):.2f}", results_file)
+        print_and_save(f"Paired t-test AUC: t = {t_auc:.3f}, {format_p_value(p_auc)} (Bonferroni corrected: {format_p_value(p_auc_corrected)})", results_file)
 
         # Paired t-test for Cl diff
         t_cl, p_cl = stats.ttest_rel(cl_diff1, cl_diff2)
         p_cl_corrected = min(p_cl * bonferroni_factor, 1.0)
-        print(f"Cl Diff: {comp['comp1']['method']} mean = {np.mean(cl_diff1):.2f}, {comp['comp2']['method']} mean = {np.mean(cl_diff2):.2f}")
-        print(f"Paired t-test Cl: t = {t_cl:.3f}, {format_p_value(p_cl)} (Bonferroni corrected: {format_p_value(p_cl_corrected)})")
+        print_and_save(f"Cl Diff: {comp['comp1']['method']} mean = {np.mean(cl_diff1):.2f}, {comp['comp2']['method']} mean = {np.mean(cl_diff2):.2f}", results_file)
+        print_and_save(f"Paired t-test Cl: t = {t_cl:.3f}, {format_p_value(p_cl)} (Bonferroni corrected: {format_p_value(p_cl_corrected)})", results_file)
 
         # RMSE
         rmse_auc1 = np.sqrt(np.mean(auc_diff1**2))
         rmse_auc2 = np.sqrt(np.mean(auc_diff2**2))
-        print(f"AUC RMSE: {comp['comp1']['method']} = {rmse_auc1:.2f}, {comp['comp2']['method']} = {rmse_auc2:.2f}")
+        print_and_save(f"AUC RMSE: {comp['comp1']['method']} = {rmse_auc1:.2f}, {comp['comp2']['method']} = {rmse_auc2:.2f}", results_file)
 
         rmse_cl1 = np.sqrt(np.mean(cl_diff1**2))
         rmse_cl2 = np.sqrt(np.mean(cl_diff2**2))
-        print(f"Cl RMSE: {comp['comp1']['method']} = {rmse_cl1:.2f}, {comp['comp2']['method']} = {rmse_cl2:.2f}")
+        print_and_save(f"Cl RMSE: {comp['comp1']['method']} = {rmse_cl1:.2f}, {comp['comp2']['method']} = {rmse_cl2:.2f}", results_file)
 
         # Percentage error for AUC
         perc_error_auc1 = ((auc1 / auc_true - 1) * 100)
@@ -268,38 +340,38 @@ def main():
         mean_perc_auc2 = np.mean(perc_error_auc2)
         rmse_perc_auc1 = np.sqrt(np.mean(perc_error_auc1**2))
         rmse_perc_auc2 = np.sqrt(np.mean(perc_error_auc2**2))
-        print(f"AUC Percentage Error Mean: {comp['comp1']['method']} = {mean_perc_auc1:.2f}%, {comp['comp2']['method']} = {mean_perc_auc2:.2f}%")
-        print(f"AUC Percentage Error RMSE: {comp['comp1']['method']} = {rmse_perc_auc1:.2f}%, {comp['comp2']['method']} = {rmse_perc_auc2:.2f}%")
+        print_and_save(f"AUC Percentage Error Mean: {comp['comp1']['method']} = {mean_perc_auc1:.2f}%, {comp['comp2']['method']} = {mean_perc_auc2:.2f}%", results_file)
+        print_and_save(f"AUC Percentage Error RMSE: {comp['comp1']['method']} = {rmse_perc_auc1:.2f}%, {comp['comp2']['method']} = {rmse_perc_auc2:.2f}%", results_file)
 
         # 95% CI for AUC
         ci_auc1 = (np.mean(auc_diff1) - 1.96 * np.std(auc_diff1), np.mean(auc_diff1) + 1.96 * np.std(auc_diff1))
         ci_auc2 = (np.mean(auc_diff2) - 1.96 * np.std(auc_diff2), np.mean(auc_diff2) + 1.96 * np.std(auc_diff2))
-        print(f"AUC 95% CI: {comp['comp1']['method']} ({ci_auc1[0]:.2f}, {ci_auc1[1]:.2f}), {comp['comp2']['method']} ({ci_auc2[0]:.2f}, {ci_auc2[1]:.2f})")
+        print_and_save(f"AUC 95% CI: {comp['comp1']['method']} ({ci_auc1[0]:.2f}, {ci_auc1[1]:.2f}), {comp['comp2']['method']} ({ci_auc2[0]:.2f}, {ci_auc2[1]:.2f})", results_file)
 
         # 95% CI for Cl
         ci_cl1 = (np.mean(cl_diff1) - 1.96 * np.std(cl_diff1), np.mean(cl_diff1) + 1.96 * np.std(cl_diff1))
         ci_cl2 = (np.mean(cl_diff2) - 1.96 * np.std(cl_diff2), np.mean(cl_diff2) + 1.96 * np.std(cl_diff2))
-        print(f"Cl 95% CI: {comp['comp1']['method']} ({ci_cl1[0]:.2f}, {ci_cl1[1]:.2f}), {comp['comp2']['method']} ({ci_cl2[0]:.2f}, {ci_cl2[1]:.2f})")
+        print_and_save(f"Cl 95% CI: {comp['comp1']['method']} ({ci_cl1[0]:.2f}, {ci_cl1[1]:.2f}), {comp['comp2']['method']} ({ci_cl2[0]:.2f}, {ci_cl2[1]:.2f})", results_file)
 
         # Pearson's r
         pearson_r1, _ = stats.pearsonr(auc_true, auc1)
         pearson_r2, _ = stats.pearsonr(auc_true, auc2)
-        print(f"Pearson's r AUC: {comp['comp1']['method']} = {pearson_r1:.3f}, {comp['comp2']['method']} = {pearson_r2:.3f}")
+        print_and_save(f"Pearson's r AUC: {comp['comp1']['method']} = {pearson_r1:.3f}, {comp['comp2']['method']} = {pearson_r2:.3f}", results_file)
 
         # McNemar's test
         mcnemar_result, table = mcnemar_test(auc_true, auc1, auc2)
         p_mcnemar_corrected = min(mcnemar_result.pvalue * bonferroni_factor, 1.0)
-        print(f"McNemar's Test: chi2 = {mcnemar_result.statistic:.3f}, {format_p_value(mcnemar_result.pvalue)} (Bonferroni corrected: {format_p_value(p_mcnemar_corrected)})")
-        print(f"Contingency Table:\n{table}")
+        print_and_save(f"McNemar's Test: chi2 = {mcnemar_result.statistic:.3f}, {format_p_value(mcnemar_result.pvalue)} (Bonferroni corrected: {format_p_value(p_mcnemar_corrected)})", results_file)
+        print_and_save(f"Contingency Table:\n{table}", results_file)
         correct1 = int(table[1, 0] + table[1, 1])
         correct2 = int(table[0, 1] + table[1, 1])
-        print(f"{comp['comp1']['method']} correct classifications: {correct1}, {comp['comp2']['method']} correct classifications: {correct2}")
+        print_and_save(f"{comp['comp1']['method']} correct classifications: {correct1}, {comp['comp2']['method']} correct classifications: {correct2}", results_file)
         if correct1 > correct2:
-            print(f"{comp['comp1']['method']} has more correct classifications than {comp['comp2']['method']}.")
+            print_and_save(f"{comp['comp1']['method']} has more correct classifications than {comp['comp2']['method']}.", results_file)
         elif correct2 > correct1:
-            print(f"{comp['comp2']['method']} has more correct classifications than {comp['comp1']['method']}.")
+            print_and_save(f"{comp['comp2']['method']} has more correct classifications than {comp['comp1']['method']}.", results_file)
         else:
-            print("Both methods have the same number of correct classifications.")
+            print_and_save("Both methods have the same number of correct classifications.", results_file)
 
         # Create AUC comparison grids
         auc_models = [auc1, auc2]
@@ -309,8 +381,25 @@ def main():
         # Generate Bland-Altman plots
         title1 = f'Bland-Altman: {get_full_method_name(comp["comp1"]["method"], comp["comp1"]["compartment"])} AUC vs True AUC'
         title2 = f'Bland-Altman: {get_full_method_name(comp["comp2"]["method"], comp["comp2"]["compartment"])} AUC vs True AUC'
-        bland_altman_plot(auc_true, auc1, title1, f'output/bland_altman_{comp["comp1"]["method"]}_{comp["comp1"]["compartment"]}.png')
-        bland_altman_plot(auc_true, auc2, title2, f'output/bland_altman_{comp["comp2"]["method"]}_{comp["comp2"]["compartment"]}.png')
+        bland_altman_plot(auc_true, auc1, title1, f'merged_output/bland_altman_{comp["comp1"]["method"]}_{comp["comp1"]["compartment"]}_combined.png')
+        bland_altman_plot(auc_true, auc2, title2, f'merged_output/bland_altman_{comp["comp2"]["method"]}_{comp["comp2"]["compartment"]}_combined.png')
 
-if __name__ == '__main__':
-    main()
+        print(f"Completed comparison {actual_index+1}")
+    
+        results_file.close()
+        print(f"Analysis complete for comparison {actual_index+1}. Results saved to {results_filename}")
+
+if __name__ == "__main__":
+    import sys
+    comparison_index = None
+    if len(sys.argv) > 1:
+        try:
+            comparison_index = int(sys.argv[1])
+            if comparison_index < 0 or comparison_index > 3:
+                print("Comparison index must be 0-3")
+                sys.exit(1)
+        except ValueError:
+            print("Comparison index must be a number 0-3")
+            sys.exit(1)
+    
+    main(comparison_index)

@@ -1,0 +1,20 @@
+
+=== 1 compartment Bayesian trough vs 1 compartment Bayesian peak trough ===
+Merged and filtered data: 480000 simulations
+AUC Diff: bay_tr mean = -8.24, bay_pk_tr mean = -7.02
+Paired t-test AUC: t = -21.081, p < 0.001 (Bonferroni corrected: p < 0.001)
+Cl Diff: bay_tr mean = -0.02, bay_pk_tr mean = -0.03
+Paired t-test Cl: t = 29.020, p < 0.001 (Bonferroni corrected: p < 0.001)
+AUC RMSE: bay_tr = 55.19, bay_pk_tr = 41.46
+Cl RMSE: bay_tr = 0.32, bay_pk_tr = 0.24
+AUC Percentage Error Mean: bay_tr = -0.62%, bay_pk_tr = -0.86%
+AUC Percentage Error RMSE: bay_tr = 9.14%, bay_pk_tr = 6.87%
+AUC 95% CI: bay_tr (-115.19, 98.72), bay_pk_tr (-87.10, 73.06)
+Cl 95% CI: bay_tr (-0.64, 0.60), bay_pk_tr (-0.49, 0.43)
+Pearson's r AUC: bay_tr = 0.962, bay_pk_tr = 0.979
+McNemar's Test: chi2 = 6267.669, p < 0.001 (Bonferroni corrected: p < 0.001)
+Contingency Table:
+[[ 36881.  37887.]
+ [ 19003. 386229.]]
+bay_tr correct classifications: 405232, bay_pk_tr correct classifications: 424116
+bay_pk_tr has more correct classifications than bay_tr.

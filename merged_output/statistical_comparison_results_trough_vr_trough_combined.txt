@@ -1,0 +1,46 @@
+=== Trough-Based Pharmacokinetic Model Comparisons (Combined Data) ===
+Merged and filtered data: 450539 simulations
+
+=== 1-Compartment Bayesian Trough vs 2-Compartment Bayesian Trough ===
+AUC Diff: 1-Compt Bayes = -12.06, 2-Compt Bayes = -4.82
+Paired t-test: t = -76.790, p < 0.001 (Bonferroni corrected: p < 0.001)
+AUC 95% CI (1-Compt Bayes): (-114.85, 90.72)
+AUC 95% CI (2-Compt Bayes): (-109.38, 99.74)
+AUC RMSE: 1-Compt Bayes = 53.81, 2-Compt Bayes = 53.57
+AUC Percentage Error Mean: 1-Compt Bayes = -1.20%, 2-Compt Bayes = -0.14%
+AUC Percentage Error RMSE: 1-Compt Bayes = 8.98%, 2-Compt Bayes = 9.05%
+AUC Pearson's r: 1-Compt Bayes = 0.964, 2-Compt Bayes = 0.962
+McNemar test: statistic = 24.794, p < 0.001 (Bonferroni corrected: p < 0.001)
+Contingency table:
+[[ 30519.  39839.]
+ [ 41258. 338923.]]
+Correct classifications: 1-Compt Bayes = 380181, 2-Compt Bayes = 378762
+Cl Diff: 1-Compt Bayes = 0.03, 2-Compt Bayes = 0.01
+Paired t-test: t = 46.477, p < 0.001 (Bonferroni corrected: p < 0.001)
+Cl 95% CI (1-Compt Bayes): (-0.60, 0.66)
+Cl 95% CI (2-Compt Bayes): (-0.61, 0.63)
+Cl RMSE: 1-Compt Bayes = 0.32, 2-Compt Bayes = 0.32
+Trough Cp: 1-Compt Bayes = 18.23, 2-Compt Bayes = 18.41
+Paired t-test: t = -44.193, p < 0.001 (Bonferroni corrected: p < 0.001)
+
+=== 1-Compartment Fixed VD Trough vs 2-Compartment Bayesian Trough ===
+AUC Diff: Fixed VD = -14.49, 2-Compt Bayes = -4.82
+Paired t-test: t = -98.312, p < 0.001 (Bonferroni corrected: p < 0.001)
+AUC 95% CI (Fixed VD): (-117.97, 88.99)
+AUC 95% CI (2-Compt Bayes): (-109.38, 99.74)
+AUC RMSE: Fixed VD = 54.75, 2-Compt Bayes = 53.57
+AUC Percentage Error Mean: Fixed VD = -2.61%, 2-Compt Bayes = -0.14%
+AUC Percentage Error RMSE: Fixed VD = 9.64%, 2-Compt Bayes = 9.05%
+AUC Pearson's r: Fixed VD = 0.963, 2-Compt Bayes = 0.962
+McNemar test: statistic = 42.712, p < 0.001 (Bonferroni corrected: p < 0.001)
+Contingency table:
+[[ 29004.  44707.]
+ [ 42773. 334055.]]
+Correct classifications: Fixed VD = 376828, 2-Compt Bayes = 378762
+Cl Diff: Fixed VD = 0.12, 2-Compt Bayes = 0.01
+Paired t-test: t = 187.971, p < 0.001 (Bonferroni corrected: p < 0.001)
+Cl 95% CI (Fixed VD): (-0.62, 0.86)
+Cl 95% CI (2-Compt Bayes): (-0.61, 0.63)
+Cl RMSE: Fixed VD = 0.40, 2-Compt Bayes = 0.32
+Trough Cp: Fixed VD = 18.30, 2-Compt Bayes = 18.41
+Paired t-test: t = -26.449, p < 0.001 (Bonferroni corrected: p < 0.001)

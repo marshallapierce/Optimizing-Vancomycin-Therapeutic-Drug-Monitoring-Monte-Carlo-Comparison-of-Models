@@ -4,7 +4,8 @@ from scipy import stats
 from statsmodels.stats.contingency_tables import mcnemar
 import sys
 
-# Statistical comparisons for 1 compartment non-bayesian Peak-trough vrs 2 compartment Bayesian Peak-Trough, 1 compartarment Bayesian peak-trough vrs 2 compartment Bayesian peak-trough
+# Statistical comparisons for 1 compartment non-bayesian Peak-trough vrs 2 compartment Bayesian Peak-Trough,
+# 1 compartarment Bayesian peak-trough vrs 2 compartment Bayesian peak-trough
 # Adapted from statistical_comparisons.py
 
 # Function to load detailed Monte Carlo results and extract metrics

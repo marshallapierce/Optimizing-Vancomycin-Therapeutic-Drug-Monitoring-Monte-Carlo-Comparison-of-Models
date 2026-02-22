@@ -10,6 +10,19 @@ np.random.seed(42)  # For repeatable random values
 output_dir = 'output'
 os.makedirs(output_dir, exist_ok=True)
 
+# This code simulates a two-compartment pharmacokinetic model by randomizing mean pharmacokinetic parameters by two standard deviations, 
+# calculating true and randomized serum levels, fits the randomized levels to one-compartment models to simulated data under 
+# different scenarios of available concentration levels, and compares the predicted AUC to the true AUC. The models fit are 
+# analytic peak trough, fixed Vd trough, and Bayesian one-compartment trough, peak trough models . It generates detailed CSV files for each scenario 
+# and combined grids for comparison.  The user can specify which time points to use for fitting and a suffix for the output files.
+# The code also generates Bland-Altman plots for the AUC predictions. # A batch files (run_multiple_weights_OneVrsTwoCompartmentModelComparisonGeometricMean.py) is used to run 
+# this code with different weights, crcls, and time of levels for fitting, and the output CSV files can be used for further analysis and plotting.
+
+
+
+# The code generates detailed CSV files for each # scenario and combined grids for comparison. The user can specify which 
+# time points to use for fitting and a suffix for the output files.
+
 # Get the Python file name for output files
 py_file_name = os.path.splitext(os.path.basename(__file__))
 

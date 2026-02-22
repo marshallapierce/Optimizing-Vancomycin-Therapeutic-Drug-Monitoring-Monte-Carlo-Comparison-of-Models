@@ -9,6 +9,9 @@ def print_and_save(text, file):
     print(text)
     file.write(text + '\n')
 
+# Compares trough models to peak-trough models for one and two compartment models, 2 Compartment Bayesian trough vs 1 Compartment Bayesian peak-trough,
+# 2 Compartment Bayesian trough vs 2 Compartment Bayesian peak-trough, 1 Compartment Bayesian trough vs 1 Compartment Bayesian peak-trough, and 
+# 1 Compartment Bayesian trough vs 1 Compartment non-Bayesian peak-trough.
 # Statistical comparisons for Bayesian trough vs Bayesian peak trough, Bayesian trough vs peak trough, etc.
 # Adapted from statistical_comparisons_one_compt_pk_tr_vs_two_compt_pk_tr.py
 

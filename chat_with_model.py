@@ -1,5 +1,7 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
+import json
+import os
 
 # Path to the downloaded model
 model_path = "D:/Dolphin3.0-Llama3.1-8B"
@@ -15,6 +17,22 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 
 print("Model loaded! You can now ask questions. Type 'quit' to exit.")
+
+# Load chat history
+history_file = "chat_history.json"
+if os.path.exists(history_file):
+    with open(history_file, 'r') as f:
+        history = json.load(f)
+else:
+    history = []
+
+# Display prior sessions
+if history:
+    print("\nPrior sessions:")
+    for entry in history:
+        print(f"You: {entry['user']}")
+        print(f"AI: {entry['assistant']}")
+        print("---")
 
 # Chat loop
 while True:
@@ -44,3 +62,10 @@ while True:
     assistant_response = response[assistant_start:].split("<|im_end|>")[0].strip()
 
     print(f"AI: {assistant_response}")
+
+    # Append to history
+    history.append({"user": user_input, "assistant": assistant_response})
+
+# Save history
+with open(history_file, 'w') as f:
+    json.dump(history, f)

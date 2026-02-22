@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 # Create output directory
 output_dir = 'output'
 
-# Statistical comparisons for 1 compartment non-bayesian Peak-trough vrs 1 compartment Bayesian Peak-Trough, 1 compartment Bayesian peak-trough vrs 2 compartment Bayesian peak-trough
+# Statistical comparisons for 1 compartment non-bayesian Peak-trough vrs 1 compartment Bayesian Peak-Trough,
+# 1 compartment Bayesian peak-trough vrs 2 compartment Bayesian peak-trough
 # Adapted from statistical_comparisons.py
 
 # Function to load detailed Monte Carlo results and extract metrics

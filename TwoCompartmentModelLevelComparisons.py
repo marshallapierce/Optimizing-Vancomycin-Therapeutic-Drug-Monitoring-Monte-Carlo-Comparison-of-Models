@@ -4,6 +4,14 @@ import matplotlib.pyplot as plt  # optional for plotting
 import csv
 import os
 
+# This code simulates a two-compartment pharmacokinetic model by randomizing mean pharmacokinetic parameters by two standard deviations, calculating true and randomized serum levels, 
+# fits the randomized levels to two-compartment models to simulated data under different scenarios of available concentration levels, 
+# and compares the predicted AUC to the true AUC. It generates detailed CSV files for each scenario and combined grids for comparison. 
+# The user can specify which time points to use for fitting and a suffix for the output files.
+# The models fit is a two-compartment model with Bayesian priors on the parameters. The code also generates Bland-Altman plots for the AUC predictions.
+# A batch files (run_two_compartment_multiple_weights.py) is used to run this code with different weights, crcls, and time of levels for fitting, 
+# and the output CSV files can be used for further analysis and plotting.
+
 # Time points for true and fitting concentrations post dose 
 times_true = np.array([0, 1, 2, 3, 4, 8, 9, 10])# User entered, levels in grids.cvs change line 144 to match
 

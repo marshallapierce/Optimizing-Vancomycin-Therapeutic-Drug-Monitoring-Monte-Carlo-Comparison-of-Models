@@ -3,134 +3,102 @@ import pandas as pd
 from scipy import stats
 from statsmodels.stats.contingency_tables import mcnemar
 import sys
-import matplotlib.pyplot as plt
 
-# Create output directory
-output_dir = 'merged_output'
+# Statistical comparisons for 1 compartment non-bayesian Peak-trough vrs 2 compartment Bayesian Peak-Trough,
+# 1 compartarment Bayesian peak-trough vrs 2 compartment Bayesian peak-trough
+# Adapted from statistical_comparisons.py
 
-def print_and_save(text, file):
-    """Print to terminal and save to file"""
-    print(text)
-    file.write(text + '\n')
-
-# Statistical comparisons for peak+trough models
-# 1 compartment analytic peak trough vs 1 compartment Bayesian peak trough
-# 1 compartment Bayesian peak trough vs 2 compartment Bayesian peak trough
-
-def load_detailed_results():
-    filename = f'{output_dir}/combined_monte_carlo_all_data_onevrstwocompartment_geometric_mean.csv'
+# Function to load detailed Monte Carlo results and extract metrics
+def load_detailed_results(suffix):
+    filename = f'monte_carlo_all_data_onevrstwocompartment_geometric_mean{suffix}.csv'
     try:
         df = pd.read_csv(filename)
-        return df
+        # Filter for valid Vdcalc > 0
+        valid = df['Vdcalc'] > 0
+        df = df[valid]
+        
+        auc_true = df['AUC_true'].values
+        auc_calc = df['AUCcalc'].values  # PK-TR
+        auc_bayes = df['AUC_fit_bayes'].values
+        auc_diff_calc = auc_calc - auc_true
+        auc_diff_bayes = auc_bayes - auc_true
+        
+        cl_true = df['Cl_total_true'].values
+        cl_calc = df['Clcalc'].values
+        cl_bayes = df['Cl_fit_bayes'].values
+        cl_diff_calc = cl_true - cl_calc
+        cl_diff_bayes = cl_true - cl_bayes
+        
+        # Bayesian fitted levels at trough (10h) and peak trough (2h)
+        cp_10_bayes = df['Cp_10.0_fit_bayes'].values
+        cp_2_bayes = df['Cp_2.0_fit_bayes'].values
+        cp_diff_bayes = cp_10_bayes - cp_2_bayes  # Trough - peak trough
+        
+        pearson_r_calc, _ = stats.pearsonr(auc_true, auc_calc)
+        pearson_r_bayes, _ = stats.pearsonr(auc_true, auc_bayes)
+        
+        return {
+            'auc_diff_calc': auc_diff_calc,
+            'auc_diff_bayes': auc_diff_bayes,
+            'cl_diff_calc': cl_diff_calc,
+            'cl_diff_bayes': cl_diff_bayes,
+            'cp_diff_bayes': cp_diff_bayes,
+            'auc_true': auc_true,
+            'auc_calc': auc_calc,
+            'auc_bayes': auc_bayes,
+            'cp_10_bayes': cp_10_bayes,
+            'cp_2_bayes': cp_2_bayes,
+            'pearson_r_calc': pearson_r_calc,
+            'pearson_r_bayes': pearson_r_bayes
+        }
     except FileNotFoundError:
         print(f"File {filename} not found.")
         return None
 
-def load_detailed_results_two_vrs_two():
-    filename = f'{output_dir}/combined_monte_carlo_results_two_vrs_two_peaktrough.csv'
+# Function to load statistics
+def load_stats_results(suffix):
+    filename = f'cl_differences_statistics_Geometric_Mean{suffix}.csv'
     try:
         df = pd.read_csv(filename)
-        return df
+        stats_dict = {}
+        for _, row in df.iterrows():
+            stat = row['Statistic']
+            value = row['Value']
+            stats_dict[stat] = value
+        return stats_dict
+    except FileNotFoundError:
+        print(f"File {filename} not found.")
+        return {}
+
+# Function to load detailed Monte Carlo results for two-vs-two
+def load_detailed_results_two_vrs_two(suffix):
+    filename = f'monte_carlo_results_two_vrs_two{suffix}.csv'
+    try:
+        df = pd.read_csv(filename)
+        # Filter for valid Vd (assuming Vc + Vp > 0)
+        valid = (df['Vc_fit'] + df['Vp_fit']) > 0
+        df = df[valid]
+        auc_true = df['AUC_true'].values
+        auc_fit = df['AUC_fit'].values
+        auc_diff = auc_fit - auc_true
+        cl_true = df['Cl_total_true'].values
+        cl_fit = df['Cl_total_fit'].values
+        cl_diff = cl_true - cl_fit
+        cp_2_fit = df['Cp_2_fit'].values
+        cp_10_fit = df['Cp_10_fit'].values
+        pearson_r, _ = stats.pearsonr(auc_true, auc_fit)
+        return {
+            'auc_diff': auc_diff,
+            'cl_diff': cl_diff,
+            'auc_true': auc_true,
+            'auc_fit': auc_fit,
+            'cp_2_fit': cp_2_fit,
+            'cp_10_fit': cp_10_fit,
+            'pearson_r': pearson_r
+        }
     except FileNotFoundError:
         print(f"File {filename} not found.")
         return None
-
-def mcnemar_test(auc_true, auc_calc, auc_bayes):
-    bins = [0, 400, 601, np.inf]
-    bins_true = np.digitize(auc_true, bins) - 1
-    bins_calc = np.digitize(auc_calc, bins) - 1
-    bins_bayes = np.digitize(auc_bayes, bins) - 1
-    calc_correct = (bins_true == bins_calc).astype(int)
-    bayes_correct = (bins_true == bins_bayes).astype(int)
-    table = np.zeros((2, 2))
-    for i in range(len(calc_correct)):
-        table[calc_correct[i], bayes_correct[i]] += 1
-    result = mcnemar(table, exact=False)
-    return result, table
-
-def format_p_value(p):
-    if p < 0.001:
-        return "p < 0.001"
-    elif p < 0.01:
-        return "p < 0.01"
-    elif p < 0.05:
-        return "p < 0.05"
-    else:
-        return f"p = {p:.3f}"
-
-def bland_altman_plot(true_vals, pred_vals, title, filename):
-    mean_vals = (true_vals + pred_vals) / 2
-    diff_vals = pred_vals - true_vals
-    plt.figure(figsize=(8, 6))
-    plt.scatter(mean_vals, diff_vals, alpha=0.5)
-    plt.axhline(np.mean(diff_vals), color='red', linestyle='-.', label='Mean difference')
-    plt.axhline(np.mean(diff_vals) + 1.96 * np.std(diff_vals), color='blue', linestyle='--', label='+1.96 SD')
-    plt.axhline(np.mean(diff_vals) - 1.96 * np.std(diff_vals), color='blue', linestyle='--', label='-1.96 SD')
-    plt.xlabel('Mean of True and Predicted AUC')
-    plt.ylabel('Difference (Predicted - True) AUC')
-    plt.title(title)
-    plt.legend()
-    plt.savefig(filename)
-    plt.close()
-
-def create_auc_comparison_csv(auc_true, auc_models, model_names, suffix):
-    bins = [0, 400, 600, np.inf]
-    bins_true = np.digitize(auc_true, bins) - 1
-    lines = []
-    lines.append("One Compartment & Two Compartment Peak-Trough Methods Versus True AUC")
-    lines.append("")
-    for auc_pred, name in zip(auc_models, model_names):
-        bins_pred = np.digitize(auc_pred, bins) - 1
-        table = np.zeros((3, 3))
-        for i in range(len(bins_true)):
-            table[bins_true[i], bins_pred[i]] += 1
-        # Comparison Grid
-        lines.append(f"{name} - Comparison Grid")
-        lines.append("Actual AUC Ranges,Number Fit in AUC Ranges Below")
-        lines.append("Number In AUC ranges,Total,< 400,400 through 600,> 600")
-        ranges = ["< 400", "400 through 600", "> 600"]
-        for r in range(3):
-            total = int(np.sum(table[r, :]))
-            c1 = int(table[r, 0])
-            c2 = int(table[r, 1])
-            c3 = int(table[r, 2])
-            lines.append(f"{ranges[r]},{total},{c1},{c2},{c3}")
-        lines.append("")
-        # Percentage Grid
-        lines.append(f"{name} - Percentage Grid")
-        lines.append("Actual AUC Ranges,Percentage Fit in AUC Ranges Below")
-        lines.append("Number In AUC ranges,Total,< 400,400 through 600,> 600")
-        for r in range(3):
-            total = np.sum(table[r, :])
-            if total > 0:
-                p1 = table[r, 0] / total * 100
-                p2 = table[r, 1] / total * 100
-                p3 = table[r, 2] / total * 100
-                lines.append(f"{ranges[r]},{total:.0f},{p1:.1f}%,{p2:.1f}%,{p3:.1f}%")
-            else:
-                lines.append(f"{ranges[r]},0,0.0%,0.0%,0.0%")
-        lines.append("")
-        # Fraction correct
-        correct = np.sum(np.diag(table))
-        total_all = np.sum(table)
-        frac = correct / total_all
-        lines.append(f"Fraction of Correct Predictions,,,,,{frac:.4f}")
-        # Additional percentages for middle bin
-        if np.sum(table[1, :]) > 0:
-            pct_over = table[1, 2] / np.sum(table[1, :]) * 100
-            pct_under = table[1, 0] / np.sum(table[1, :]) * 100
-            lines.append(f"% Predicted AUC >600 when True AUC 400-600,,,,,{pct_over:.2f}%")
-            lines.append(f"% Predicted AUC <400 when True AUC 400-600,,,,,{pct_under:.2f}%")
-        else:
-            lines.append(f"% Predicted AUC >600 when True AUC 400-600,,,,,0.00%")
-            lines.append(f"% Predicted AUC <400 when True AUC 400-600,,,,,0.00%")
-        lines.append("")
-    # Write to file
-    filename = f'{output_dir}/auc_comparison_grids_pk_tr_pk_tr_vr_pk_tr_combined.csv'
-    with open(filename, 'w') as f:
-        for line in lines:
-            f.write(line + '\n')
-    print(f"Comparison grids saved to {filename}")
 
 # Function to load grid results for two-vs-two
 def load_grid_results_two_vrs_two(suffix):
@@ -164,184 +132,154 @@ def mcnemar_test(auc_true, auc_calc, auc_bayes):
     result = mcnemar(table, exact=False)
     return result, table
 
+# Main function
 def main():
-    # Load combined data (no suffix needed)
-    df_one = load_detailed_results()
-    df_two = load_detailed_results_two_vrs_two()
+    if len(sys.argv) > 1:
+        suffix = sys.argv[1]
+    else:
+        print("Enter the suffix for the data files (e.g., CltotalfourpointfiveTR):")
+        sys.stdout.flush()
+        suffix = input().strip()
 
-    # Open output file for statistical results
-    results_file = open(f'{output_dir}/statistical_comparison_results_pk_tr_vs_bayesian_combined.txt', 'w')
+    # Load data
+    data = load_detailed_results(suffix)
+    stats_data = load_stats_results(suffix)
+    data_two_vrs_two = load_detailed_results_two_vrs_two(suffix)
+    grid_two_vrs_two = load_grid_results_two_vrs_two(suffix)
 
-    try:
-        if df_one is not None and df_two is not None:
-            # Merge on 'Group', 'Crcl', and 'weight' to align simulations across conditions
-            merged_df = pd.merge(df_one, df_two, on=['Group', 'Crcl', 'weight'], suffixes=('_one', '_two'))
+    if data:
+        print(f"=== Statistical Comparisons for PK-TR (1 compt) vs Bayesian PK-TR (2 compt), and 1-Compartment (1 compt) Bayesian PK-TR vs 2-Compartment (2 compt) Bayesian PK-TR Peak-Trough (Suffix: {suffix}) ===")
 
-            # Apply filters
-            valid_one = merged_df['Vdcalc'] > 0
-            valid_two = (merged_df['Vc_fit'] + merged_df['Vp_fit']) > 0
-            valid = valid_one & valid_two
-            df = merged_df[valid]
+        auc_diff_calc = data['auc_diff_calc']
+        auc_diff_bayes = data['auc_diff_bayes']
+        cl_diff_calc = data['cl_diff_calc']
+        cl_diff_bayes = data['cl_diff_bayes']
+        cp_diff_bayes = data['cp_diff_bayes']
+        auc_true = data['auc_true']
+        auc_calc = data['auc_calc']
+        auc_bayes = data['auc_bayes']
 
-            # Extract metrics
-            auc_true = df['AUC_true_one'].values
-            auc_calc = df['AUCcalc'].values  # One-compartment analytic peak trough
-            auc_bayes_one = df['AUC_fit_bayes_full'].values  # One-compartment Bayesian peak trough
-            auc_bayes_two = df['AUC_fit'].values  # Two-compartment Bayesian peak trough
+        # Section 1: PK-TR vs Bayesian
+        print("\n=== PK-TR (1 compt) vs Bayesian PK-TR (2 compt) ===")
+        t_auc, p_auc = stats.ttest_rel(auc_diff_calc, auc_diff_bayes)
+        p_auc_corrected = min(p_auc * 6, 1.0)
+        print(f"AUC Diff: PK-TR mean = {np.mean(auc_diff_calc):.2f}, Bayesian mean = {np.mean(auc_diff_bayes):.2f}")
+        print(f"Paired t-test: t = {t_auc:.3f}, p = {p_auc:.3e} (Bonferroni corrected: {p_auc_corrected:.3e})")
 
-            # Calculate Cl differences (since no separate Cl statistics file exists)
-            cl_true = df['Cl_total_true_one'].values
-            cl_calc = df['Clcalc'].values
-            cl_bayes_one = df['Cl_fit_bayes_full'].values
-            cl_bayes_two = df['Cl_total_fit'].values
+        t_cl, p_cl = stats.ttest_rel(cl_diff_calc, cl_diff_bayes)
+        p_cl_corrected = min(p_cl * 6, 1.0)
+        print(f"Cl Diff: PK-TR mean = {np.mean(cl_diff_calc):.2f}, Bayesian mean = {np.mean(cl_diff_bayes):.2f}")
+        print(f"Paired t-test: t = {t_cl:.3f}, p = {p_cl:.3e} (Bonferroni corrected: {p_cl_corrected:.3e})")
 
-            # Generate Bland-Altman plots
-            bland_altman_plot(auc_true, auc_calc, 'Bland-Altman: One-Compartment Analytic Peak-Trough AUC vs True AUC', f'{output_dir}/bland_altman_one_compt_analytic_pk_tr_combined.png')
-            bland_altman_plot(auc_true, auc_bayes_one, 'Bland-Altman: One-Compartment Bayesian Peak-Trough AUC vs True AUC', f'{output_dir}/bland_altman_one_compt_bayes_pk_tr_combined.png')
-            bland_altman_plot(auc_true, auc_bayes_two, 'Bland-Altman: Two-Compartment Bayesian Peak-Trough AUC vs True AUC', f'{output_dir}/bland_altman_two_compt_bayes_pk_tr_combined.png')
+        rmse_auc_calc = np.sqrt(np.mean(auc_diff_calc**2))
+        rmse_auc_bayes = np.sqrt(np.mean(auc_diff_bayes**2))
+        print(f"AUC RMSE: PK-TR = {rmse_auc_calc:.2f}, Bayesian = {rmse_auc_bayes:.2f}")
 
-            # Create AUC comparison grids CSV
-            auc_models = [auc_calc, auc_bayes_one, auc_bayes_two]
-            model_names = ["One Compartment Analytic", "One Compartment Bayesian", "Two Compartment Bayesian"]
-            create_auc_comparison_csv(auc_true, auc_models, model_names, "")
+        rmse_cl_calc = np.sqrt(np.mean(cl_diff_calc**2))
+        rmse_cl_bayes = np.sqrt(np.mean(cl_diff_bayes**2))
+        print(f"Cl RMSE: PK-TR = {rmse_cl_calc:.2f}, Bayesian = {rmse_cl_bayes:.2f}")
 
-            # Calculate Pearson's r
-            pearson_r_calc, _ = stats.pearsonr(auc_true, auc_calc)
-            pearson_r_bayes_one, _ = stats.pearsonr(auc_true, auc_bayes_one)
-            pearson_r_bayes_two, _ = stats.pearsonr(auc_true, auc_bayes_two)
+        ci_auc_calc = (np.mean(auc_diff_calc) - 1.96 * np.std(auc_diff_calc), np.mean(auc_diff_calc) + 1.96 * np.std(auc_diff_calc))
+        ci_auc_bayes = (np.mean(auc_diff_bayes) - 1.96 * np.std(auc_diff_bayes), np.mean(auc_diff_bayes) + 1.96 * np.std(auc_diff_bayes))
+        print(f"AUC 95% CI: PK-TR ({ci_auc_calc[0]:.2f}, {ci_auc_calc[1]:.2f}), Bayesian ({ci_auc_bayes[0]:.2f}, {ci_auc_bayes[1]:.2f})")
 
-            print_and_save(f"=== Peak-Trough Pharmacokinetic Model Comparisons (Combined Data) ===", results_file)
-            print_and_save(f"Merged and filtered data: {len(df)} simulations", results_file)
+        ci_cl_calc = (np.mean(cl_diff_calc) - 1.96 * np.std(cl_diff_calc), np.mean(cl_diff_calc) + 1.96 * np.std(cl_diff_calc))
+        ci_cl_bayes = (np.mean(cl_diff_bayes) - 1.96 * np.std(cl_diff_bayes), np.mean(cl_diff_bayes) + 1.96 * np.std(cl_diff_bayes))
+        print(f"Cl 95% CI: PK-TR {ci_cl_calc[0]:.2f} to {ci_cl_calc[1]:.2f}, Bayesian {ci_cl_bayes[0]:.2f} to {ci_cl_bayes[1]:.2f}")
 
-            # Section 1: One-Compartment Analytic Peak-Trough vs One-Compartment Bayesian Peak-Trough
-            print_and_save("\n=== One-Compartment Analytic Peak-Trough vs One-Compartment Bayesian Peak-Trough ===", results_file)
+        print(f"AUC Pearson's r: PK-TR = {data['pearson_r_calc']:.3f}, Bayesian = {data['pearson_r_bayes']:.3f}")
 
-            # AUC comparison
-            auc_diff_calc = auc_calc - auc_true
-            auc_diff_bayes_one = auc_bayes_one - auc_true
-            t_auc_1, p_auc_1 = stats.ttest_rel(auc_diff_calc, auc_diff_bayes_one)
-            p_auc_1_corrected = min(p_auc_1 * 4, 1.0)  # Bonferroni for 4 tests
-            print_and_save(f"AUC Diff: Analytic = {np.mean(auc_diff_calc):.2f}, Bayesian = {np.mean(auc_diff_bayes_one):.2f}", results_file)
-            print_and_save(f"Paired t-test: t = {t_auc_1:.3f}, {format_p_value(p_auc_1)} (Bonferroni corrected: {format_p_value(p_auc_1_corrected)})", results_file)
+        mcnemar_result, table = mcnemar_test(auc_true, auc_calc, auc_bayes)
+        p_mcnemar_corrected = min(mcnemar_result.pvalue * 6, 1.0)
+        print(f"McNemar's Test: chi2 = {mcnemar_result.statistic:.3f}, p = {mcnemar_result.pvalue:.3e} (Bonferroni corrected: {p_mcnemar_corrected:.3e})")
+        print(f"Contingency Table:\n{table}")
 
-            # AUC 95% CI
-            ci_lower_calc = np.mean(auc_diff_calc) - 1.96 * np.std(auc_diff_calc, ddof=1)
-            ci_upper_calc = np.mean(auc_diff_calc) + 1.96 * np.std(auc_diff_calc, ddof=1)
-            print_and_save(f"AUC 95% CI (Analytic): ({ci_lower_calc:.2f}, {ci_upper_calc:.2f})", results_file)
+        # Compute cp_diff for two-compartment if available
+        cp_diff_two = None
+        auc_diff_two = None
+        auc_two = None
+        auc_true_trunc = None
+        auc_true_two_trunc = None
+        if data_two_vrs_two:
+            cp_diff_two_full = data_two_vrs_two['cp_10_fit'] - data_two_vrs_two['cp_2_fit']
+            auc_diff_two_full = data_two_vrs_two['auc_diff']
+            auc_two_full = data_two_vrs_two['auc_fit']
+            auc_true_two = data_two_vrs_two['auc_true']
+            # Take the same number of samples as the one-compartment data
+            min_len = min(len(cp_diff_bayes), len(cp_diff_two_full))
+            cp_diff_two = cp_diff_two_full[:min_len]
+            cp_diff_bayes_trunc = cp_diff_bayes[:min_len]
+            auc_diff_two = auc_diff_two_full[:min_len]
+            auc_two = auc_two_full[:min_len]
+            auc_true_trunc = auc_true[:min_len]
+            auc_true_two_trunc = auc_true_two[:min_len]
+            auc_bayes_trunc = data['auc_bayes'][:min_len]
 
-            ci_lower_bayes_one = np.mean(auc_diff_bayes_one) - 1.96 * np.std(auc_diff_bayes_one, ddof=1)
-            ci_upper_bayes_one = np.mean(auc_diff_bayes_one) + 1.96 * np.std(auc_diff_bayes_one, ddof=1)
-            print_and_save(f"AUC 95% CI (Bayesian): ({ci_lower_bayes_one:.2f}, {ci_upper_bayes_one:.2f})", results_file)
+        # Section 2: 1-Compartment Bayesian Peak-Trough vs 2-Compartment Bayesian Peak-Trough
+        if cp_diff_two is not None:
+            print("\n=== 1-Compartment (1 compt) Bayesian PK-TR Peak-Trough (2,10) vs 2-Compartment (2 compt) Bayesian PK-TR Peak-Trough (2,10) ===")
+            mean_diff_one = np.mean(cp_diff_bayes_trunc)
+            mean_diff_two = np.mean(cp_diff_two)
+            print(f"Mean Cp Diff (Trough - Peak): 1-Compartment = {mean_diff_one:.2f}, 2-Compartment = {mean_diff_two:.2f}")
 
-            # RMSE calculations
-            auc_rmse_calc = np.sqrt(np.mean(auc_diff_calc**2))
-            auc_rmse_bayes_one = np.sqrt(np.mean(auc_diff_bayes_one**2))
-            print_and_save(f"AUC RMSE: Analytic = {auc_rmse_calc:.2f}, Bayesian = {auc_rmse_bayes_one:.2f}", results_file)
+            # Paired t-test between the two differences
+            t_cp_comp, p_cp_comp = stats.ttest_rel(cp_diff_bayes_trunc, cp_diff_two)
+            p_cp_comp_corrected = min(p_cp_comp * 6, 1.0)
+            print(f"Paired t-test (1-comp vs 2-comp): t = {t_cp_comp:.3f}, p = {p_cp_comp:.3e} (Bonferroni corrected: {p_cp_comp_corrected:.3e})")
 
-            # Percentage error for AUC
-            perc_error_auc_calc = ((auc_calc / auc_true - 1) * 100)
-            perc_error_auc_bayes_one = ((auc_bayes_one / auc_true - 1) * 100)
-            mean_perc_auc_calc = np.mean(perc_error_auc_calc)
-            mean_perc_auc_bayes_one = np.mean(perc_error_auc_bayes_one)
-            rmse_perc_auc_calc = np.sqrt(np.mean(perc_error_auc_calc**2))
-            rmse_perc_auc_bayes_one = np.sqrt(np.mean(perc_error_auc_bayes_one**2))
-            print_and_save(f"AUC Percentage Error Mean: Analytic = {mean_perc_auc_calc:.2f}%, Bayesian = {mean_perc_auc_bayes_one:.2f}%", results_file)
-            print_and_save(f"AUC Percentage Error RMSE: Analytic = {rmse_perc_auc_calc:.2f}%, Bayesian = {rmse_perc_auc_bayes_one:.2f}%", results_file)
+            rmse_cp_one = np.sqrt(np.mean(cp_diff_bayes_trunc**2))
+            rmse_cp_two = np.sqrt(np.mean(cp_diff_two**2))
+            print(f"Cp RMSE (diff): 1-Compartment = {rmse_cp_one:.2f}, 2-Compartment = {rmse_cp_two:.2f}")
 
-            # Pearson's r for AUC
-            print_and_save(f"AUC Pearson's r: Analytic = {pearson_r_calc:.3f}, Bayesian = {pearson_r_bayes_one:.3f}", results_file)
-
-            # McNemar test
-            result_mc_1, table_mc_1 = mcnemar_test(auc_true, auc_calc, auc_bayes_one)
-            p_mc_1_corrected = min(result_mc_1.pvalue * 4, 1.0)
-            print_and_save(f"McNemar test: statistic = {result_mc_1.statistic:.3f}, {format_p_value(result_mc_1.pvalue)} (Bonferroni corrected: {format_p_value(p_mc_1_corrected)})", results_file)
-            print_and_save(f"Contingency table:\n{table_mc_1}", results_file)
-            correct_analytic = int(table_mc_1[1, 0] + table_mc_1[1, 1])
-            correct_bayes_one = int(table_mc_1[0, 1] + table_mc_1[1, 1])
-            print_and_save(f"Correct classifications: Analytic = {correct_analytic}, Bayesian = {correct_bayes_one}", results_file)
-
-            # Cl comparison
-            cl_diff_calc = cl_calc - cl_true
-            cl_diff_bayes_one = cl_bayes_one - cl_true
-            t_cl_1, p_cl_1 = stats.ttest_rel(cl_diff_calc, cl_diff_bayes_one)
-            p_cl_1_corrected = min(p_cl_1 * 4, 1.0)
-            print_and_save(f"Cl Diff: Analytic = {np.mean(cl_diff_calc):.2f}, Bayesian = {np.mean(cl_diff_bayes_one):.2f}", results_file)
-            print_and_save(f"Paired t-test: t = {t_cl_1:.3f}, {format_p_value(p_cl_1)} (Bonferroni corrected: {format_p_value(p_cl_1_corrected)})", results_file)
-
-            # Cl 95% CI
-            ci_cl_lower_calc = np.mean(cl_diff_calc) - 1.96 * np.std(cl_diff_calc, ddof=1)
-            ci_cl_upper_calc = np.mean(cl_diff_calc) + 1.96 * np.std(cl_diff_calc, ddof=1)
-            print_and_save(f"Cl 95% CI (Analytic): ({ci_cl_lower_calc:.2f}, {ci_cl_upper_calc:.2f})", results_file)
-
-            ci_cl_lower_bayes_one = np.mean(cl_diff_bayes_one) - 1.96 * np.std(cl_diff_bayes_one, ddof=1)
-            ci_cl_upper_bayes_one = np.mean(cl_diff_bayes_one) + 1.96 * np.std(cl_diff_bayes_one, ddof=1)
-            print_and_save(f"Cl 95% CI (Bayesian): ({ci_cl_lower_bayes_one:.2f}, {ci_cl_upper_bayes_one:.2f})", results_file)
-
-            # Cl RMSE
-            cl_rmse_calc = np.sqrt(np.mean(cl_diff_calc**2))
-            cl_rmse_bayes_one = np.sqrt(np.mean(cl_diff_bayes_one**2))
-            print_and_save(f"Cl RMSE: Analytic = {cl_rmse_calc:.2f}, Bayesian = {cl_rmse_bayes_one:.2f}", results_file)
-
-            # Section 2: One-Compartment Bayesian Peak-Trough vs Two-Compartment Bayesian Peak-Trough
-            print_and_save("\n=== One-Compartment Bayesian Peak-Trough vs Two-Compartment Bayesian Peak-Trough ===", results_file)
+            ci_cp_one = (np.mean(cp_diff_bayes_trunc) - 1.96 * np.std(cp_diff_bayes_trunc), np.mean(cp_diff_bayes_trunc) + 1.96 * np.std(cp_diff_bayes_trunc))
+            ci_cp_two = (np.mean(cp_diff_two) - 1.96 * np.std(cp_diff_two), np.mean(cp_diff_two) + 1.96 * np.std(cp_diff_two))
+            print(f"Cp Diff 95% CI: 1-Compartment ({ci_cp_one[0]:.2f}, {ci_cp_one[1]:.2f}), 2-Compartment ({ci_cp_two[0]:.2f}, {ci_cp_two[1]:.2f})")
 
             # AUC comparison
-            auc_diff_bayes_two = auc_bayes_two - auc_true
-            t_auc_2, p_auc_2 = stats.ttest_rel(auc_diff_bayes_one, auc_diff_bayes_two)
-            p_auc_2_corrected = min(p_auc_2 * 4, 1.0)
-            print_and_save(f"AUC Diff: 1-Compt Bayes = {np.mean(auc_diff_bayes_one):.2f}, 2-Compt Bayes = {np.mean(auc_diff_bayes_two):.2f}", results_file)
-            print_and_save(f"Paired t-test: t = {t_auc_2:.3f}, {format_p_value(p_auc_2)} (Bonferroni corrected: {format_p_value(p_auc_2_corrected)})", results_file)
+            mean_auc_diff_one = np.mean(auc_bayes_trunc - auc_true_trunc)
+            mean_auc_diff_two = np.mean(auc_two - auc_true_trunc)
+            print(f"Mean AUC Diff: 1-Compartment = {mean_auc_diff_one:.2f}, 2-Compartment = {mean_auc_diff_two:.2f}")
 
-            # AUC 95% CI
-            print_and_save(f"AUC 95% CI (1-Compt Bayes): ({ci_lower_bayes_one:.2f}, {ci_upper_bayes_one:.2f})", results_file)
+            ci_auc_one = (mean_auc_diff_one - 1.96 * np.std(auc_bayes_trunc - auc_true_trunc), mean_auc_diff_one + 1.96 * np.std(auc_bayes_trunc - auc_true_trunc))
+            ci_auc_two = (mean_auc_diff_two - 1.96 * np.std(auc_two - auc_true_two_trunc), mean_auc_diff_two + 1.96 * np.std(auc_two - auc_true_two_trunc))
+            print(f"AUC 95% CI: 1-Compartment ({ci_auc_one[0]:.2f}, {ci_auc_one[1]:.2f}), 2-Compartment ({ci_auc_two[0]:.2f}, {ci_auc_two[1]:.2f})")
+            print(f"Debug - 2-Compartment AUC diff std: {np.std(auc_two - auc_true_trunc):.2f}, n: {len(auc_two)}")  # Debug
 
-            ci_lower_bayes_two = np.mean(auc_diff_bayes_two) - 1.96 * np.std(auc_diff_bayes_two, ddof=1)
-            ci_upper_bayes_two = np.mean(auc_diff_bayes_two) + 1.96 * np.std(auc_diff_bayes_two, ddof=1)
-            print_and_save(f"AUC 95% CI (2-Compt Bayes): ({ci_lower_bayes_two:.2f}, {ci_upper_bayes_two:.2f})", results_file)
+            # McNemar's test for CDA
+            mcnemar_result_auc, table_auc = mcnemar_test(auc_true_trunc, auc_bayes_trunc, auc_two)
+            p_mcnemar_auc_corrected = min(mcnemar_result_auc.pvalue * 6, 1.0)
+            print(f"McNemar's Test for CDA ===")
+            print(f"Contingency Table:\n{table_auc}")
+            print(f"McNemar's Test: chi2 = {mcnemar_result_auc.statistic:.3f}, p = {mcnemar_result_auc.pvalue:.3e} (Bonferroni corrected: {p_mcnemar_auc_corrected:.3e})")
 
-            # RMSE calculations
-            auc_rmse_bayes_two = np.sqrt(np.mean(auc_diff_bayes_two**2))
-            print_and_save(f"AUC RMSE: 1-Compt Bayes = {auc_rmse_bayes_one:.2f}, 2-Compt Bayes = {auc_rmse_bayes_two:.2f}", results_file)
+        # Summary from stats file
+        print("\n=== Summary from Stats File ===")
+        if 'Bias Average Cl_diff_calc pk trough calc' in stats_data:
+            print(f"Cl Bias PK-TR: {stats_data['Bias Average Cl_diff_calc pk trough calc']:.4f}")
+        if 'RMSE Sqrt Average Cl_diff_calc_sq pk trough calc' in stats_data:
+            print(f"Cl RMSE PK-TR: {stats_data['RMSE Sqrt Average Cl_diff_calc_sq pk trough calc']:.4f}")
+        if 'Bias Average Cl_diff_bayes' in stats_data:
+            print(f"Cl Bias Bayesian: {stats_data['Bias Average Cl_diff_bayes']:.4f}")
+        if 'RMSE Sqrt Average Cl_diff_bayes_sq' in stats_data:
+            print(f"Cl RMSE Bayesian: {stats_data['RMSE Sqrt Average Cl_diff_bayes_sq']:.4f}")
 
-            # Percentage error for AUC
-            perc_error_auc_bayes_two = ((auc_bayes_two / auc_true - 1) * 100)
-            mean_perc_auc_bayes_two = np.mean(perc_error_auc_bayes_two)
-            rmse_perc_auc_bayes_two = np.sqrt(np.mean(perc_error_auc_bayes_two**2))
-            print_and_save(f"AUC Percentage Error Mean: 1-Compt Bayes = {mean_perc_auc_bayes_one:.2f}%, 2-Compt Bayes = {mean_perc_auc_bayes_two:.2f}%", results_file)
-            print_and_save(f"AUC Percentage Error RMSE: 1-Compt Bayes = {rmse_perc_auc_bayes_one:.2f}%, 2-Compt Bayes = {rmse_perc_auc_bayes_two:.2f}%", results_file)
-
-            # Pearson's r for AUC
-            print_and_save(f"AUC Pearson's r: 1-Compt Bayes = {pearson_r_bayes_one:.3f}, 2-Compt Bayes = {pearson_r_bayes_two:.3f}", results_file)
-
-            # McNemar test
-            result_mc_2, table_mc_2 = mcnemar_test(auc_true, auc_bayes_one, auc_bayes_two)
-            p_mc_2_corrected = min(result_mc_2.pvalue * 4, 1.0)
-            print_and_save(f"McNemar test: statistic = {result_mc_2.statistic:.3f}, {format_p_value(result_mc_2.pvalue)} (Bonferroni corrected: {format_p_value(p_mc_2_corrected)})", results_file)
-            print_and_save(f"Contingency table:\n{table_mc_2}", results_file)
-            correct_bayes_one_2 = int(table_mc_2[1, 0] + table_mc_2[1, 1])
-            correct_bayes_two = int(table_mc_2[0, 1] + table_mc_2[1, 1])
-            print_and_save(f"Correct classifications: 1-Compt Bayes = {correct_bayes_one_2}, 2-Compt Bayes = {correct_bayes_two}", results_file)
-
-            # Cl comparison
-            cl_diff_bayes_two = cl_bayes_two - cl_true
-            t_cl_2, p_cl_2 = stats.ttest_rel(cl_diff_bayes_one, cl_diff_bayes_two)
-            p_cl_2_corrected = min(p_cl_2 * 4, 1.0)
-            print_and_save(f"Cl Diff: 1-Compt Bayes = {np.mean(cl_diff_bayes_one):.2f}, 2-Compt Bayes = {np.mean(cl_diff_bayes_two):.2f}", results_file)
-            print_and_save(f"Paired t-test: t = {t_cl_2:.3f}, {format_p_value(p_cl_2)} (Bonferroni corrected: {format_p_value(p_cl_2_corrected)})", results_file)
-
-            # Cl 95% CI
-            print_and_save(f"Cl 95% CI (1-Compt Bayes): ({ci_cl_lower_bayes_one:.2f}, {ci_cl_upper_bayes_one:.2f})", results_file)
-
-            ci_cl_lower_bayes_two = np.mean(cl_diff_bayes_two) - 1.96 * np.std(cl_diff_bayes_two, ddof=1)
-            ci_cl_upper_bayes_two = np.mean(cl_diff_bayes_two) + 1.96 * np.std(cl_diff_bayes_two, ddof=1)
-            print_and_save(f"Cl 95% CI (2-Compt Bayes): ({ci_cl_lower_bayes_two:.2f}, {ci_cl_upper_bayes_two:.2f})", results_file)
-
-            # Cl RMSE
-            cl_rmse_bayes_two = np.sqrt(np.mean(cl_diff_bayes_two**2))
-            print_and_save(f"Cl RMSE: 1-Compt Bayes = {cl_rmse_bayes_one:.2f}, 2-Compt Bayes = {cl_rmse_bayes_two:.2f}", results_file)
-
-    finally:
-        results_file.close()
+        # Section 3: One-Compartment Bayesian vs Two-Compartment Bayesian
+        if data_two_vrs_two:
+            print("\n=== One-Compartment (1 compt) Bayesian PK-TR vs Two-Compartment (2 compt) Bayesian PK-TR ===")
+            auc_diff_one_bayes = data['auc_diff_bayes']
+            auc_diff_two_bayes = data_two_vrs_two['auc_diff']
+            print(f"One-Compartment Bayesian AUC Diff mean: {np.mean(auc_diff_one_bayes):.2f}")
+            print(f"Two-Compartment Bayesian AUC Diff mean: {np.mean(auc_diff_two_bayes):.2f}")
+            rmse_one = np.sqrt(np.mean(auc_diff_one_bayes**2))
+            rmse_two = np.sqrt(np.mean(auc_diff_two_bayes**2))
+            print(f"AUC RMSE: One-Compartment = {rmse_one:.2f}, Two-Compartment = {rmse_two:.2f}")
+            print(f"Pearson's r: One-Compartment = {data['pearson_r_bayes']:.3f}, Two-Compartment = {data_two_vrs_two['pearson_r']:.3f}")
+            # From grid - keep only the '2,10' level to avoid diluting analysis
+            if grid_two_vrs_two:
+                # if '10' in grid_two_vrs_two:
+                #     print(f"Two-Compartment (Levels '10'): AUC RMSE = {grid_two_vrs_two['10']['auc_rmse']:.2f}, Mean AUC Diff = {grid_two_vrs_two['10']['mean_auc_diff']:.2f}")
+                if '2,10' in grid_two_vrs_two:
+                    print(f"Two-Compartment (Levels '2,10'): AUC RMSE = {grid_two_vrs_two['2,10']['auc_rmse']:.2f}, Mean AUC Diff = {grid_two_vrs_two['2,10']['mean_auc_diff']:.2f}")
 
 if __name__ == '__main__':
     main()

@@ -1,23 +1,25 @@
 # Python Monte Carlo Simulation for Vancomycin Pharmacokinetic Modeling
 
-This repository contains Monte Carlo simulation code for comparing one-compartment and two-compartment pharmacokinetic models in vancomycin therapeutic drug monitoring (TDM). The project evaluates the accuracy of Area Under the Curve (AUC) predictions using different modeling approaches, including Bayesian and non-Bayesian methods.
+This repository contains Monte Carlo simulation code for comparing one-compartment and two-compartment pharmacokinetic models in vancomycin therapeutic drug monitoring (TDM). The project evaluates the accuracy of Area Under the Curve (AUC) predictions using different modeling approaches, including 1 compartment analytic peak-trough, 1 compartment fixed Vd trough, and 1 and 2 compartment Bayesian methods, againt the 2 compartment Goti reference model.
 
 ## Overview
 
 Vancomycin is a critical antibiotic used for treating serious infections, and accurate dosing is essential to ensure therapeutic efficacy while minimizing toxicity. This project uses Monte Carlo simulations to:
 
-- Compare one-compartment vs. two-compartment pharmacokinetic models
-- Evaluate 1-compartment peak-trough non-bayesian, 1 compartment bayesian trough and peak-trough, two-compartment Bayesian trough and peak-trough vs. reference model for AUC estimation
-- Assess model performance across different renal function levels and patient weights
-- Generate statistical comparisons and visualizations
+- Compare one-compartment vs. two-compartment pharmacokinetic models using sparse data sampling (trough, peak-trough).
+- Evaluate 1-compartment analytic peak-trough non-bayesian, 1 compartment Bayesian trough and peak-trough, 2 compartment Bayesian trough and peak-trough vs. reference 2 compartment Bayesian Goti model for AUC estimation. Statistically compare the difference models performance against the reference model and again each other.
+- Assess model performance across different renal function levels (crcl ml/min 30, 60, 90, 120) and patient weights (50, 70, 90, 110 kg)
+- Generate statistical comparisons and visualizations for individual models vs reference model in folders (1 compartment models folder names output_clcrxx_wtxx, 2 compartment models folder names output_twocompartment_clcrxx_wtxx) and merged data sets of all 480,000 simulations in the merged_output folder. The statistical_comparsion text files in the merged_output folder contain the statistical comparison data for the specific models being compared.
+- 
 
 ## Features
 
-- **Monte Carlo Simulations**: Generates thousands of simulated patient scenarios with varying pharmacokinetic parameters
-- **Model Comparisons**: Compares AUC predictions between:
-  - One-compartment analytic models using a peak an trough
-  - One-compartment Bayesian models using a trough and a peak and a trough
-  - Two-compartment Bayesian models using a trough and a peak and a trough
+- **Monte Carlo Simulations**: Use the Goti reference model radomized mean population parameters within 2 standard deviations of the mean to generates 30,000 thousand simulated patient scenarios for each weight and repeated this for each crcl with a total number of simulations of 480,000.
+- **Model Comparisons**: Compares AUC predictions of models and 2 compartment Bayesian reference model:
+  - One-compartment analytic model using a peak an trough
+  - One-compartment fix Vd usinng a trough
+  - One-compartment Bayesian model using a trough and a peak and a trough
+  - Two-compartment Goti Bayesian model using a trough and a peak and a trough
 - **Statistical Analysis**: Performs McNemar tests and other statistical comparisons
 - **Visualization**: Creates plots and HTML comparison tables
 - **Flexible Input**: Supports different dosing regimens, renal functions, and patient weights
@@ -50,7 +52,7 @@ cd Python_Monte_Carlo_2
 
 ## Usage
 
-### Running Individual Comparisons
+### Running Individual and Group Comparisons
 
 The repository contains several Python scripts for different types of comparisons:
 
@@ -58,9 +60,9 @@ The repository contains several Python scripts for different types of comparison
 - `TwoCompartmentModelLevelComparisons.py`: Main comparison script for 2 compartment Bayesian trough and peak-trough vs 2 compartment Bayesian reference model
 - `run_multiple_weights_crcls_OneVrsTwoCompartmentModelComparisonGeometricMean.py`: Runs OneVrsTwoCompartmentModelComparisonGeometricMean.py with multiple weights and CrCLs
 - `run_two_compartment_multiple_weights_crcls.py`: Runs TwoCompartmentModelLevelComparisons.py with multiple weights and CrCLs
-- `statistical_comparisons_trough_models.py`: Statistical analysis of trough models; 1 compartment Bayesian trough vs 2 compartment Bayesian trough and 1 compartment fixed Vd vs 2 compartment Bayesian trough
-- `statistical_comparisons_pk_tr_vs_bayesian.py`: Statistical analysis of peak-trough models; 1 compartment analytic peak-trough vs 1 compartment Bayesian peak-trough and 1 compartment Bayesian peak-trough vs 2 compartment Bayesian peak-trough models
-- `run_statistical_comparison_one_two_comp_bay_tr_vr_one_two_compart_nonbay_pktr_bay_pktr_merged_data_sets.py`: Statistical comparison of trough vs peak-trough models; 2 compartment Bayesian trough vs 1 compartment Bayesian peak-trough, 2 compartment Bayesian trough vs 2 compartment Bayesian peak-trough, 1 compartment Bayesian trough vs 1 compartment Bayesian peak-trough, 1 compartment Bayesian trough vs 1 compartment analytic peak-trough
+- `statistical_comparisons_trough_models.py`: Statistical analysis of trough models using merged data set; 1 compartment Bayesian trough vs 2 compartment Bayesian trough and 1 compartment fixed Vd vs 2 compartment Bayesian trough
+- `statistical_comparisons_pk_tr_vs_bayesian.py`: Statistical analysis of peak-trough models using merged data sets; 1 compartment analytic peak-trough vs 1 compartment Bayesian peak-trough and 1 compartment Bayesian peak-trough vs 2 compartment Bayesian peak-trough models
+- `run_statistical_comparison_one_two_comp_bay_tr_vr_one_two_compart_nonbay_pktr_bay_pktr_merged_data_sets.py`: Statistical comparison of trough vs peak-trough models using merged data sets; 2 compartment Bayesian trough vs 1 compartment Bayesian peak-trough, 2 compartment Bayesian trough vs 2 compartment Bayesian peak-trough, 1 compartment Bayesian trough vs 1 compartment Bayesian peak-trough, 1 compartment Bayesian trough vs 1 compartment analytic peak-trough
 
 
 ### Example Usage
@@ -78,7 +80,7 @@ python OneVrsTwoCompartmentModelComparisonGeometricMean.py
 
 ### Output Files
 
-The simulations generate various output files in the `output/` and `merged_output/` directories:
+The simulations generate various output files in the `rootfolder/` and `merged_output/` directories:
 
 - **CSV files**: Raw simulation data and statistical results
 - **PNG plots**: Accuracy plots and AUC comparisons
@@ -117,10 +119,11 @@ The Monte Carlo simulations:
 
 ### Pharmacokinetic Models
 
-- **One-compartment**: Simple elimination model
-- **Two-compartment**: Distribution and elimination phases
+- **Referemce model**: Goti 2 compartment Bayesian model
+- **One-compartment**: Simple elimination model (1 compartment open model)
+- **Two-compartment**: Distribution and elimination phases (2 compartment open model)
 - **Bayesian**: Incorporates prior knowledge and multiple concentration measurements
-- **Analytic**: Uses population parameters and single-point estimates
+- **Analytic**: 1 compartment Sawchuck-Zaske model, from which are dervied population parameters used in 1 compartment Bayesian model and fixed Vd model estimates
 
 ## Contributing
 

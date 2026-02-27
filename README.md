@@ -44,11 +44,38 @@ pip install numpy pandas scipy matplotlib statsmodels
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/Python_Monte_Carlo_2.git
-cd Python_Monte_Carlo_2
+git clone https://github.com/marshallapierce/Optimizing-Vancomycin-Therapeutic-Drug-Monitoring-Monte-Carlo-Comparison-of-Models.git
+cd Optimizing-Vancomycin-Therapeutic-Drug-Monitoring-Monte-Carlo-Comparison-of-Models
 ```
 
 2. Install required packages (see Dependencies section)
+
+## Data Access
+
+This repository includes large simulation data files compressed with 7-Zip (.7z) and stored using Git LFS for efficient handling.
+
+### Prerequisites for Data Access
+- **Git LFS**: Required to download the full data files. Install from https://git-lfs.github.com/
+- **7-Zip**: Required to extract the .7z archives. Download from https://www.7-zip.org/
+
+### Cloning with Data
+```bash
+git lfs install
+git clone https://github.com/marshallapierce/Optimizing-Vancomycin-Therapeutic-Drug-Monitoring-Monte-Carlo-Comparison-of-Models.git
+```
+
+### Extracting Data Files
+1. After cloning, navigate to the `merged_output/` directory.
+2. Right-click each .7z file and select "7-Zip > Extract Here" to decompress.
+3. The extracted CSV files contain the merged Monte Carlo simulation results for analysis.
+
+### Data Files Description
+- `combined_monte_carlo_all_data_onevrstwocompartment_geometric_mean.7z`: Combined results for one vs two compartment geometric mean comparisons (extracts to ~414 MB CSV).
+- `combined_monte_carlo_results_two_vrs_two_default.7z`: Two vs two compartment default model results (extracts to ~312 MB CSV).
+- `combined_monte_carlo_results_two_vrs_two_peaktrough.7z`: Two vs two compartment peak-trough results (extracts to ~313 MB CSV).
+- `combined_monte_carlo_results_two_vrs_two_trough.7z`: Two vs two compartment trough results (extracts to ~303 MB CSV).
+
+These files are used by the statistical comparison scripts in the repository.
 
 ## Usage
 
